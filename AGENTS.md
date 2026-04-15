@@ -38,6 +38,12 @@ uv run scripts/generate_cart.py -i mario.p8 -o output.p8
 ruff format scripts/
 ruff check scripts/
 
+# Run unit tests (busted)
+busted
+
+# Run a specific test file
+busted spec/helpers_spec.lua
+
 # Copy cart to PICO-8 iCloud carts folder for play-testing
 cp mario.p8 ~/iCloud/pico-8/carts/marioish/mario.p8
 
@@ -56,6 +62,10 @@ See [docs/architecture.md](docs/architecture.md) for .p8 format details, sprite/
 ## Python script conventions
 
 Scripts use PEP 723 inline metadata with `uv run --script` shebang. See `CLAUDE.md` for the exact pattern (decouple-based env loading, specific docstring format, no `from __future__`).
+
+## Testing
+
+See [docs/testing.md](docs/testing.md) for test infrastructure, PICO-8 shim details, gotchas, and the full test strategy (unit, integration, E2E).
 
 <!-- BACKLOG.MD MCP GUIDELINES START -->
 
