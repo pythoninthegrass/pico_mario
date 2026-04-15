@@ -17,7 +17,7 @@ Args:
     --dry-run:    Print URLs without downloading.
 
 Downloads all Super Mario Bros. labeled map PNGs from nesmaps.com
-and saves them as maps/super_mario_bros_{W}-{L}.png.
+and saves them as maps/smb_{W}-{L}.png.
 """
 
 import argparse
@@ -36,7 +36,7 @@ def png_url(world: int, level: int) -> str:
 
 
 def output_filename(world: int, level: int) -> str:
-    return f"super_mario_bros_{world}-{level}.png"
+    return f"smb_{world}-{level}.png"
 
 
 def download_maps(output_dir: Path, *, dry_run: bool = False) -> None:
