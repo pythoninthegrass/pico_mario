@@ -8,8 +8,9 @@
 ## Gameplay polish
 
 - [ ] Tune physics constants (gravity, jump strength, move speed, max fall)
-- [ ] Add variable-height jump (release button early = lower arc)
-- [ ] Add coyote time (brief grace period to jump after walking off edge)
+- [x] Add variable-height jump (release button early = lower arc)
+- [x] Add coyote time (brief grace period to jump after walking off edge)
+- [x] Add run mechanic (hold X for faster speed + higher jump)
 
 ## Graphics
 

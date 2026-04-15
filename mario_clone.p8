@@ -10,8 +10,11 @@ __lua__
 -- physics
 grav=0.4
 max_fall=3
-jump_str=-3.2
+jump_str=-4.16
 move_spd=1.2
+run_spd=2.0
+run_jump_str=-5.2
+coyote=5 -- frames of jump grace after leaving edge
 
 -- map dimensions (in tiles)
 map_w=64
@@ -83,9 +86,11 @@ function make_player(sx,sy)
   facing=1,
   frame=0,
   frame_t=0,
-  spawn_x=sx,
-  spawn_y=sy,
- }
+   spawn_x=sx,
+   spawn_y=sy,
+   coyote_t=0,
+   running=false,
+  }
  return p
 end
 
@@ -302,22 +307,48 @@ end
 function update_play()
  local p=player
 
+ -- run state (x button)
+ p.running=btn(5)
+ local spd=move_spd
+ if p.running then spd=run_spd end
+
  -- horizontal input
  p.dx=0
  if btn(0) then
-  p.dx=-move_spd
+  p.dx=-spd
   p.facing=-1
  end
  if btn(1) then
-  p.dx=move_spd
+  p.dx=spd
   p.facing=1
  end
 
- -- jump
- if p.grounded and (btnp(4) or btnp(5)) then
-  p.dy=jump_str
+ -- coyote time: track grace frames
+ -- after walking off an edge
+ if p.grounded then
+  p.coyote_t=coyote
+ else
+  p.coyote_t=max(p.coyote_t-1,0)
+ end
+
+ -- jump: o button only (btn 4)
+ -- stronger jump when running
+ local can_jump=p.grounded or p.coyote_t>0
+ if can_jump and btnp(4) then
+  if p.running then
+   p.dy=run_jump_str
+  else
+   p.dy=jump_str
+  end
   p.grounded=false
+  p.coyote_t=0
   sfx(0)
+ end
+
+ -- variable jump: cut upward velocity
+ -- when o button released early
+ if p.dy<0 and not btn(4) then
+  p.dy*=0.4
  end
 
  -- gravity

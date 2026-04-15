@@ -24,6 +24,9 @@ Managed via `mise` (see `.tool-versions`):
 ## Commands
 
 ```bash
+# Alias for PICO-8 binary (add to shell profile if needed)
+alias pico8='/Applications/PICO-8.app/Contents/MacOS/pico8'
+
 # Patch sprites into the cart (in-place)
 uv run scripts/generate_cart.py
 
@@ -33,7 +36,17 @@ uv run scripts/generate_cart.py -i mario_clone.p8 -o output.p8
 # Lint/format the Python script
 ruff format scripts/
 ruff check scripts/
+
+# Copy cart to PICO-8 iCloud carts folder for play-testing
+cp mario_clone.p8 ~/iCloud/pico-8/carts/marioish/mario.p8
+
+# Launch cart directly in PICO-8
+pico8 -run mario_clone.p8
 ```
+
+## macOS gotchas
+
+- **Screenshot filenames contain U+202F**: macOS uses a narrow no-break space before AM/PM in screenshot names (e.g. `Screenshot 2026-04-15 at 3.03.41\u202fPM.png`). This character is invisible and breaks naive path handling. When the user pastes a screenshot path, copy it to `/tmp` first using a printf escape: `cp /path/to/Screenshot\ …$(printf '\xe2\x80\xaf')PM.png /tmp/screenshot.png`
 
 ## .p8 format gotchas
 
@@ -72,6 +85,16 @@ Flag bits: 0=solid, 1=hazard, 2=goal, 3=coin.
 ## Python script conventions
 
 Scripts use PEP 723 inline metadata with `uv run --script` shebang. See `CLAUDE.md` for the exact pattern (decouple-based env loading, specific docstring format, no `from __future__`).
+
+## Controls
+
+| Button | PICO-8 | Action          |
+|--------|--------|-----------------|
+| arrows | btn 0-3| move left/right |
+| O      | btn 4  | jump            |
+| X      | btn 5  | run (hold)      |
+
+Hold X + direction for run speed. Jump while running for higher/longer arc.
 
 ## Level design
 
