@@ -70,7 +70,7 @@ def parse_p8(text: str) -> tuple[list[str], dict[str, list[str]]]:
         m = SECTION_RE.match(line)
         if m:
             current_section = m.group(1)
-            sections[current_section] = []
+            sections[m.group(1)] = []
         elif current_section is None:
             header.append(line)
         else:
