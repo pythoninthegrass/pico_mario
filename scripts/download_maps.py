@@ -28,7 +28,7 @@ from pathlib import Path
 BASE_URL = "https://nesmaps.com/maps/SuperMarioBrothers"
 
 # 8 worlds, 4 levels each
-LEVELS: list[tuple[int, int]] = [(w, l) for w in range(1, 9) for l in range(1, 5)]
+LEVELS: list[tuple[int, int]] = [(w, lv) for w in range(1, 9) for lv in range(1, 5)]
 
 
 def png_url(world: int, level: int) -> str:
