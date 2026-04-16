@@ -37,7 +37,7 @@ busted --list
 | File | Purpose |
 |------|---------|
 | `.busted` | busted configuration (root dirs, helper, output format) |
-| `spec/helper.lua` | extracts `__lua__` from `mario.p8`, transpiles PICO-8 shorthand, provides `load_game()` |
+| `spec/helper.lua` | reads `src/*.lua` files, transpiles PICO-8 shorthand, provides `load_game()` |
 | `spec/pico8_shim.lua` | stubs for all PICO-8 built-in functions with mock map/flag system |
 
 ### PICO-8 shim (`spec/pico8_shim.lua`)
@@ -64,7 +64,7 @@ _pico8.btns[4] = true  -- O (jump)
 
 ### Transpiler (`spec/helper.lua`)
 
-The helper extracts the `__lua__` section from `mario.p8` and transpiles PICO-8 shorthand into standard Lua before `load()`:
+The helper reads `src/*.lua` files in the defined include order, concatenates them, and transpiles PICO-8 shorthand into standard Lua before `load()`:
 
 | PICO-8 | Standard Lua |
 |--------|-------------|

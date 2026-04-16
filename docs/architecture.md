@@ -2,6 +2,10 @@
 
 Game architecture and data conventions for the PICO-8 Mario clone.
 
+## Source layout
+
+Game code lives in `src/*.lua` and is assembled into `mario.p8` by `generate_cart.py`. See `AGENTS.md` for the file list and include order.
+
 ## .p8 format
 
 - **SFX lines must be exactly 168 hex chars**: 8-char header + 32 notes x 5 chars. Wrong lengths cause silent load failures in PICO-8.

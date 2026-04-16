@@ -1,20 +1,27 @@
 ---
 id: TASK-021
 title: Plan modular PICO-8 source layout and asset packing strategy
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-04-15 22:41'
-updated_date: '2026-04-15 22:54'
+updated_date: '2026-04-16 04:34'
 labels: []
 dependencies: []
 references:
-  - '~/iCloud/pico-8/carts/poom'
+  - ~/iCloud/pico-8/carts/poom
   - 'https://www.excamera.com/sphinx/article-compression.html'
 documentation:
   - docs/architecture.md
   - AGENTS.md
   - scripts/generate_cart.py
   - spec/helper.lua
+  - src/constants.lua
+  - src/helpers.lua
+  - src/player.lua
+  - src/camera.lua
+  - src/particles.lua
+  - src/main.lua
+  - src/states.lua
 priority: medium
 ordinal: 500
 ---
@@ -27,23 +34,16 @@ Create an implementation plan to migrate this project from a single monolithic `
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Proposed target repository structure is documented with clear mapping from current monolithic responsibilities to new modules and folders.
-- [ ] #2 Build pipeline approach is specified for assembling Lua sources into `mario.p8` without regenerating non-Lua sections contrary to project constraints.
-- [ ] #3 Migration is broken into phased, reviewable steps with risks, rollback strategy, and explicit test/verification checkpoints.
-- [ ] #4 Plan includes a decision record on asset packing strategy (single cart vs multi-cart streaming vs LZ-style compression) and explains tradeoffs in the context of PICO-8 limits.
-- [ ] #5 Plan identifies required updates to developer tooling and tests (including cart loading helpers) so local workflows continue to work during and after migration.
+- [x] #1 Proposed target repository structure is documented with clear mapping from current monolithic responsibilities to new modules and folders.
+- [x] #2 Build pipeline approach is specified for assembling Lua sources into `mario.p8` without regenerating non-Lua sections contrary to project constraints.
+- [x] #3 Migration is broken into phased, reviewable steps with risks, rollback strategy, and explicit test/verification checkpoints.
+- [x] #4 Plan includes a decision record on asset packing strategy (single cart vs multi-cart streaming vs LZ-style compression) and explains tradeoffs in the context of PICO-8 limits.
+- [x] #5 Plan identifies required updates to developer tooling and tests (including cart loading helpers) so local workflows continue to work during and after migration.
 <!-- AC:END -->
-
-## Definition of Done
-<!-- DOD:BEGIN -->
-- [ ] #1 Cart loads in PICO-8 without errors
-- [ ] #2 Play-test affected functionality
-- [ ] #3 Copy cart to iCloud: cp mario.p8 ~/iCloud/pico-8/carts/marioish/mario.p8
-- [ ] #4 Token count verified under 8192 limit
-<!-- DOD:END -->
 
 ## Implementation Plan
 
+<!-- SECTION:PLAN:BEGIN -->
 ### 1. Target Directory Structure
 
 ```
@@ -211,3 +211,18 @@ LUA_SOURCES = [
 4. The project is back to its pre-migration state with zero impact
 
 The migration is purely structural -- no game logic changes at any phase. This means rollback is always safe and complete.
+<!-- SECTION:PLAN:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Migrated from monolithic mario.p8 __lua__ section to modular src/*.lua layout (7 files). Extended generate_cart.py with Lua assembly step, --no-assemble flag, and --no-sprites flag. Updated spec/helper.lua to load from src/ directly. All 13 tests pass. Updated AGENTS.md, docs/architecture.md, and docs/testing.md. Cart play-tested and verified working. Added --no-sprites flag after discovering that sprite patching breaks the game due to map/sprite ID mismatch (map uses old IDs, SPRITES dict defines new expanded IDs). Standard build command is now `uv run scripts/generate_cart.py --no-sprites` until map migration (TASK-001).
+<!-- SECTION:FINAL_SUMMARY:END -->
+
+## Definition of Done
+<!-- DOD:BEGIN -->
+- [x] #1 Cart loads in PICO-8 without errors
+- [x] #2 Play-test affected functionality
+- [x] #3 Copy cart to iCloud: cp mario.p8 ~/iCloud/pico-8/carts/marioish/mario.p8
+- [x] #4 Token count verified under 8192 limit
+<!-- DOD:END -->

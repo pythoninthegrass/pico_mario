@@ -55,6 +55,18 @@ SECTION_ORDER = [
 SECTION_RE = re.compile(r"^(__\w+__)$")
 
 
+# Ordered list of Lua source files to concatenate into __lua__
+LUA_SOURCES = [
+    "src/constants.lua",
+    "src/helpers.lua",
+    "src/player.lua",
+    "src/camera.lua",
+    "src/particles.lua",
+    "src/main.lua",
+    "src/states.lua",
+]
+
+
 def parse_p8(text: str) -> tuple[list[str], dict[str, list[str]]]:
     """Parse a .p8 text cartridge into header lines and section dict.
 
@@ -646,6 +658,16 @@ SPRITE_FLAGS: dict[int, int] = {
 }
 
 
+def assemble_lua(repo_root: Path) -> list[str]:
+    """Read and concatenate Lua source files into __lua__ section lines."""
+    parts: list[str] = []
+    for src in LUA_SOURCES:
+        parts.append((repo_root / src).read_text())
+    # concatenate, then strip one trailing newline (the final file's)
+    combined = "".join(parts).rstrip("\n")
+    return combined.split("\n")
+
+
 def build_gfx_lines() -> list[str]:
     """Render SPRITES dict into 128 lines of 128 hex nibbles."""
     gfx = [[0] * 128 for _ in range(128)]
@@ -714,6 +736,16 @@ def main() -> None:
         default=default_output,
         help="Output .p8 file (default: same as input, or CART_OUTPUT env var)",
     )
+    parser.add_argument(
+        "--no-assemble",
+        action="store_true",
+        help="Skip Lua assembly from src/ (patch sprites only)",
+    )
+    parser.add_argument(
+        "--no-sprites",
+        action="store_true",
+        help="Skip __gfx__/__gff__ patching (assemble Lua only)",
+    )
     args = parser.parse_args()
 
     input_path: Path = args.input
@@ -725,9 +757,16 @@ def main() -> None:
 
     header, sections = parse_p8(input_path.read_text())
 
+    # assemble __lua__ from src/ files unless skipped
+    if not args.no_assemble:
+        src_dir = repo_root / "src"
+        if src_dir.is_dir():
+            sections["__lua__"] = assemble_lua(repo_root)
+
     # patch __gfx__ and __gff__ from the sprite definitions above
-    sections["__gfx__"] = build_gfx_lines()
-    sections["__gff__"] = build_gff_lines()
+    if not args.no_sprites:
+        sections["__gfx__"] = build_gfx_lines()
+        sections["__gff__"] = build_gff_lines()
 
     output_path.write_text(emit_p8(header, sections))
 

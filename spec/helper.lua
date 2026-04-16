@@ -88,9 +88,38 @@ local function load_cart(path)
   return chunk
 end
 
+-- Ordered list of Lua source files (mirrors LUA_SOURCES in generate_cart.py)
+local LUA_SOURCES = {
+  'src/constants.lua',
+  'src/helpers.lua',
+  'src/player.lua',
+  'src/camera.lua',
+  'src/particles.lua',
+  'src/main.lua',
+  'src/states.lua',
+}
+
+-- Load and concatenate src/*.lua files, transpile, and load
+local function load_cart_from_sources()
+  local parts = {}
+  for _, path in ipairs(LUA_SOURCES) do
+    local f = io.open(path, 'r')
+    if not f then error('cannot open source: ' .. path) end
+    parts[#parts + 1] = f:read('*a')
+    f:close()
+  end
+
+  local code = table.concat(parts)
+  code = transpile_p8(code)
+
+  local chunk, err = load(code, '@src/')
+  if not chunk then error('failed to parse source lua: ' .. err) end
+  return chunk
+end
+
 -- Store the loader so tests can call it after configuring mock state
 function load_game()
   _pico8.reset()
-  local chunk = load_cart('mario.p8')
+  local chunk = load_cart_from_sources()
   chunk()
 end
