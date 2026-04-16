@@ -1,0 +1,61 @@
+{
+  "[python]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit",
+      "source.fixAll": "explicit"
+    }
+  },
+  "python.testing.pytestArgs": [
+    "tests"
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true,
+  // https://github.com/astral-sh/ruff-vscode
+  "python.analysis.ignore": [
+    "*"
+  ],
+  "[markdown]": {
+    "editor.formatOnSave": true,
+    "editor.quickSuggestions": {
+      "comments": "off",
+      "strings": "off",
+      "other": "off"
+    },
+    "files.trimTrailingWhitespace": false,
+    "editor.defaultFormatter": "vscode.markdown-language-features"
+  },
+  "doppler.autocomplete.enable": true,
+  "doppler.hover.enable": true,
+  // Lua (sumneko) -- PICO-8 dialect
+  "Lua.runtime.version": "Lua 5.2",
+  "Lua.diagnostics.globals": [
+    "poke", "peek", "memcpy", "reload", "cstore", "dget", "dset",
+    "btn", "btnp",
+    "sfx", "music",
+    "camera", "clip", "cls", "color", "cursor",
+    "circ", "circfill", "line", "rect", "rectfill", "oval", "ovalfill",
+    "pal", "palt", "pget", "pset",
+    "print", "spr", "sspr", "map", "mget", "mset",
+    "fget", "fset", "sget", "sset",
+    "flr", "ceil", "cos", "sin", "atan2", "sqrt", "abs",
+    "rnd", "srand", "sgn", "mid", "max", "min",
+    "band", "bor", "bxor", "bnot", "shl", "shr", "lshr", "rotl", "rotr",
+    "sub", "tostr", "tonum", "chr", "ord", "split", "type",
+    "add", "del", "deli", "count", "all", "foreach", "pairs",
+    "cocreate", "coresume", "costatus", "yield",
+    "stat", "extcmd", "printh", "time", "t",
+    "_init", "_update", "_update60", "_draw"
+  ],
+  "Lua.diagnostics.disable": [
+    "lowercase-global"
+  ],
+  "Lua.workspace.maxPreload": 50,
+  "Lua.workspace.library": [],
+  "Lua.workspace.checkThirdParty": false,
+  "[lua]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2
+  }
+}

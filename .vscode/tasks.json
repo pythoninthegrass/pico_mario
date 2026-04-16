@@ -1,0 +1,12 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build & Run PICO-8",
+      "type": "shell",
+      "command": "uv run scripts/generate_cart.py --no-sprites && /Applications/PICO-8.app/Contents/MacOS/pico8 -run mario.p8",
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": []
+    }
+  ]
+}
