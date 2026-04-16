@@ -4,7 +4,7 @@ title: Design sprite sheet layout and flag scheme
 status: In Progress
 assignee: []
 created_date: '2026-04-15 20:46'
-updated_date: '2026-04-15 21:19'
+updated_date: '2026-04-16 20:38'
 labels: []
 milestone: m-0
 dependencies: []
@@ -28,16 +28,22 @@ Flag bits currently: 0=solid, 1=hazard, 2=goal, 3=coin. Need to add: 4=breakable
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Sprite ID table covers all ~42 needed sprites with no conflicts
-- [ ] #2 Flag bit definitions documented (8 bits covering solid/hazard/goal/coin/breakable/question/pipe)
-- [ ] #3 AGENTS.md updated with new sprite and flag tables
-- [ ] #4 generate_cart.py updated with new sprite pixel data and flag assignments
+- [x] #1 Sprite ID table covers all ~42 needed sprites with no conflicts
+- [x] #2 Flag bit definitions documented (8 bits covering solid/hazard/goal/coin/breakable/question/pipe)
+- [x] #3 AGENTS.md updated with new sprite and flag tables
+- [x] #4 generate_cart.py updated with new sprite pixel data and flag assignments
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+generate_cart.py already had full SPRITES (42 sprites) and SPRITE_FLAGS dicts from prior work. This task finalized the design by: (1) adding spr_* ID constants and f_breakable/f_question/f_pipe flag constants to constants.lua, (2) replacing the planned/current tables in architecture.md with finalized per-row tables, (3) adding the sprite sheet summary to AGENTS.md. Cart builds successfully with --no-sprites. Unit tests have a pre-existing failure (PICO-8 += syntax not supported by standard Lua parser in test shim) unrelated to this task.
+<!-- SECTION:NOTES:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
 - [ ] #1 Cart loads in PICO-8 without errors
 - [ ] #2 Play-test affected functionality
-- [ ] #3 Copy cart to iCloud: cp mario.p8 ~/iCloud/pico-8/carts/marioish/mario.p8
-- [ ] #4 Token count verified under 8192 limit
+- [x] #3 Copy cart to iCloud: cp mario.p8 ~/iCloud/pico-8/carts/marioish/mario.p8
+- [x] #4 Token count verified under 8192 limit
 <!-- DOD:END -->

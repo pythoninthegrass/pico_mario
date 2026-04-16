@@ -16,43 +16,104 @@ Game code lives in `src/*.lua` and is assembled into `mario.p8` by `generate_car
 
 ## Sprite and flag conventions
 
-### Current sprite sheet layout
+### Sprite sheet layout
 
-| ID | Sprite        | GFF  | Flags                              |
-|----|---------------|------|------------------------------------|
-| 0  | empty         | 0x00 | —                                  |
-| 1  | mario idle    | 0x00 | —                                  |
-| 2  | mario run 1   | 0x00 | —                                  |
-| 3  | mario jump    | 0x00 | —                                  |
-| 4  | ground        | 0x01 | solid                              |
-| 5  | brick         | 0x01 | solid                              |
-| 6  | spawn marker  | 0x00 | — (removed at runtime)             |
-| 7  | coin          | 0x08 | coin                               |
-| 8  | spike/hazard  | 0x02 | hazard                             |
-| 9  | goal flag     | 0x04 | goal                               |
+The sprite sheet uses 7 rows (IDs at multiples of 16). Defined in `generate_cart.py` SPRITES dict and `src/constants.lua` spr_* constants.
 
-### Current flag bits (4 used)
+**Row 0 — Player (0-15)**
 
-| Bit | Mask | Name   | Purpose                                |
-|-----|------|--------|----------------------------------------|
-| 0   | 0x01 | solid  | blocks movement                        |
-| 1   | 0x02 | hazard | kills player on contact                |
-| 2   | 0x04 | goal   | triggers level clear                   |
-| 3   | 0x08 | coin   | collectible, removed from map on touch |
+| ID | Sprite       | Flags  |
+|----|--------------|--------|
+| 1  | mario idle   | —      |
+| 2  | mario run 1  | —      |
+| 3  | mario run 2  | —      |
+| 4  | mario jump   | —      |
+| 5  | mario death  | —      |
+| 6  | spawn marker | — (removed at runtime) |
+| 8  | spike/hazard | hazard |
 
-### Planned sprite expansion (TASK-001)
+**Row 1 — Terrain (16-31)**
 
-Target layout uses 7 rows with IDs spaced at multiples of 16:
+| ID | Sprite       | Flags              |
+|----|--------------|--------------------|
+| 16 | ground       | solid              |
+| 17 | brick        | solid + breakable  |
+| 18 | ? block f1   | solid + question   |
+| 19 | ? block f2   | solid + question   |
+| 20 | hit block    | solid              |
+| 21 | hard block   | solid              |
 
-- Row 0 (0-15): mario states, spawn marker, hazard
-- Row 1 (16-31): terrain — ground, brick, ? block, hit block, hard block
-- Row 2 (32-47): pipes (4 tiles: TL, TR, body-L, body-R)
-- Row 3 (48-63): enemies — goomba (3), koopa (3)
-- Row 4 (64-79): items — coin (2), mushroom, star, fire flower
-- Row 5 (80-95): flagpole (3), castle (3)
-- Row 6 (96-111): decorations — clouds (3), bushes (3), hills (3)
+**Row 2 — Pipes (32-47)**
 
-Additional flag bits planned: breakable (4), question (5), pipe (6).
+| ID | Sprite         | Flags        |
+|----|----------------|--------------|
+| 32 | pipe top-left  | solid + pipe |
+| 33 | pipe top-right | solid + pipe |
+| 34 | pipe body-left | solid + pipe |
+| 35 | pipe body-right| solid + pipe |
+
+**Row 3 — Enemies (48-63)**
+
+| ID | Sprite         | Flags |
+|----|----------------|-------|
+| 48 | goomba walk 1  | —     |
+| 49 | goomba walk 2  | —     |
+| 50 | goomba squished| —     |
+| 51 | koopa walk 1   | —     |
+| 52 | koopa walk 2   | —     |
+| 53 | koopa shell    | —     |
+
+**Row 4 — Items (64-79)**
+
+| ID | Sprite      | Flags |
+|----|-------------|-------|
+| 64 | coin f1     | coin  |
+| 65 | coin f2     | coin  |
+| 66 | mushroom    | —     |
+| 67 | star        | —     |
+| 68 | fire flower | —     |
+
+**Row 5 — Flagpole / Castle (80-95)**
+
+| ID | Sprite         | Flags |
+|----|----------------|-------|
+| 80 | flagpole ball  | goal  |
+| 81 | flagpole shaft | goal  |
+| 82 | flag           | goal  |
+| 83 | castle block   | solid |
+| 84 | castle top     | solid |
+| 85 | castle door    | —     |
+
+**Row 6 — Decorations (96-111)**
+
+| ID | Sprite     | Flags |
+|----|------------|-------|
+| 96 | cloud left | —     |
+| 97 | cloud mid  | —     |
+| 98 | cloud right| —     |
+| 99 | bush left  | —     |
+|100 | bush mid   | —     |
+|101 | bush right | —     |
+|102 | hill body  | —     |
+|103 | hill top   | —     |
+|104 | hill small | —     |
+
+### Flag bits (7 used)
+
+| Bit | Mask | Name      | Lua const    | Purpose                                |
+|-----|------|-----------|--------------|----------------------------------------|
+| 0   | 0x01 | solid     | f_solid      | blocks movement                        |
+| 1   | 0x02 | hazard    | f_hazard     | kills player on contact                |
+| 2   | 0x04 | goal      | f_goal       | triggers level clear                   |
+| 3   | 0x08 | coin      | f_coin       | collectible, removed from map on touch |
+| 4   | 0x10 | breakable | f_breakable  | destroyed by big mario                 |
+| 5   | 0x20 | question  | f_question   | releases item when bumped              |
+| 6   | 0x40 | pipe      | f_pipe       | pipe tile, used for entry detection    |
+| 7   | 0x80 | reserved  | —            | —                                      |
+
+### Legacy sprite IDs (map not yet migrated)
+
+The map (`__map__`) still references old sprite IDs: 4=ground, 5=brick, 7=coin, 8=spike, 9=goal. Use `--no-sprites` when building until the map is migrated to the new IDs above.
 
 ## SFX assignments
 

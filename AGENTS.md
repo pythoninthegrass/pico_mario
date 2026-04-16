@@ -95,9 +95,23 @@ pico8 -run mario.p8
 
 - **Screenshot filenames contain U+202F**: macOS uses a narrow no-break space before AM/PM in screenshot names (e.g. `Screenshot 2026-04-15 at 3.03.41\u202fPM.png`). This character is invisible and breaks naive path handling. When the user pastes a screenshot path, copy it to `/tmp` first using a printf escape: `cp /path/to/Screenshot\ …$(printf '\xe2\x80\xaf')PM.png /tmp/screenshot.png`
 
+## Sprite sheet layout (TASK-001)
+
+The full sprite sheet is defined in `generate_cart.py` (SPRITES and SPRITE_FLAGS dicts) and documented in `docs/architecture.md`. Sprite ID constants live in `src/constants.lua` as `spr_*` globals. Flag bit constants are `f_solid` through `f_pipe` (bits 0-6).
+
+Summary: 42 sprites across 7 rows (row-aligned at multiples of 16):
+
+- Row 0 (0-15): player (idle, run x2, jump, death), spawn marker, spike
+- Row 1 (16-31): ground, brick, ? block x2, hit block, hard block
+- Row 2 (32-47): pipe (TL, TR, body-L, body-R)
+- Row 3 (48-63): goomba (walk x2, squished), koopa (walk x2, shell)
+- Row 4 (64-79): coin x2, mushroom, star, fire flower
+- Row 5 (80-95): flagpole (ball, shaft, flag), castle (block, top, door)
+- Row 6 (96-111): cloud x3, bush x3, hill x3
+
 ## Sprite ID mismatch (current state)
 
-The map (`__map__`) references old sprite IDs (4=ground, 5=brick, 7=coin, 8=spike, 9=goal). The `SPRITES` dict in `generate_cart.py` defines sprites at new expanded IDs (16=ground, 17=brick, 64=coin, etc.) for TASK-001. Running `generate_cart.py` without `--no-sprites` overwrites `__gfx__`/`__gff__` with the new layout, which breaks the game because the map still points to old IDs. Always use `--no-sprites` until the map is migrated to the new sprite IDs.
+The map (`__map__`) still references old sprite IDs (4=ground, 5=brick, 7=coin, 8=spike, 9=goal). The new layout places these at 16, 17, 64, 8, 80+ respectively. Running `generate_cart.py` without `--no-sprites` overwrites `__gfx__`/`__gff__` with the new layout, breaking the game because the map still points to old IDs. Always use `--no-sprites` until the map is migrated to the new sprite IDs.
 
 ## Architecture
 
