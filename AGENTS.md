@@ -69,6 +69,15 @@ busted
 # Run a specific test file
 busted spec/helpers_spec.lua
 
+# Run visual E2E tests (all scenarios, requires PICO-8)
+uv run scripts/e2e_test.py
+
+# Run specific E2E scenarios
+uv run scripts/e2e_test.py --scenario idle jump death
+
+# Regenerate E2E baselines
+uv run scripts/e2e_test.py --update-baselines
+
 # Copy cart to PICO-8 iCloud carts folder for play-testing
 cp mario.p8 ~/iCloud/pico-8/carts/marioish/mario.p8
 
@@ -96,48 +105,64 @@ Scripts use PEP 723 inline metadata with `uv run --script` shebang. See `CLAUDE.
 
 See [docs/testing.md](docs/testing.md) for test infrastructure, PICO-8 shim details, gotchas, and the full test strategy (unit, integration, E2E).
 
+## Context7
+
+Always use Context7 MCP when I need library/API documentation, code generation, setup or configuration steps without me having to explicitly ask.
+
+### Libraries
+
+- jdx/mise
+- microsoft/playwright-python
+- mrlesk/backlog.md
+- /websites/lexaloffle_dl_pico-8_manual
+- websites/taskfile_dev
+
 <!-- BACKLOG.MD MCP GUIDELINES START -->
 
 <CRITICAL_INSTRUCTION>
 
 ## BACKLOG WORKFLOW INSTRUCTIONS
 
-This project uses Backlog.md MCP for all task and project management activities.
+This project uses Backlog.md MCP for all task and project management.
 
-**CRITICAL GUIDANCE**
-
-- If your client supports MCP resources, read `backlog://workflow/overview` to understand when and how to use Backlog for this project.
-- If your client only supports tools or the above request fails, call `backlog.get_workflow_overview()` tool to load the tool-oriented overview (it lists the matching guide tools).
+**CRITICAL RESOURCE**: Read `backlog://workflow/overview` to understand when and how to use Backlog for this project.
 
 - **First time working here?** Read the overview resource IMMEDIATELY to learn the workflow
 - **Already familiar?** You should have the overview cached ("## Backlog.md Overview (MCP)")
 - **When to read it**: BEFORE creating tasks, or when you're unsure whether to track work
 
-These guides cover:
+### Key MCP Commands
 
-- Decision framework for when to create tasks
-- Search-first workflow to avoid duplicates
-- Links to detailed guides for task creation, execution, and finalization
-- MCP tools reference
+| Command | Purpose |
+|---------|---------|
+| `task_create` | Create a new task (status defaults to "To Do") |
+| `task_edit` | Edit metadata, check ACs, update notes, change status |
+| `task_view` | View full task details |
+| `task_search` | Find tasks by keyword |
+| `task_list` | List tasks with optional filters |
+| `task_complete` | **Moves task to `backlog/completed/`** — only use for cleanup, not for marking done |
 
-You MUST read the overview resource to understand the complete workflow. The information is NOT summarized here.
+### Task Lifecycle
 
-### Task lifecycle (kanban)
+1. **Create**: `task_create` — new task in `backlog/tasks/`
+2. **Start**: `task_edit(status: "In Progress")` — mark as active
+3. **Done**: `task_edit(status: "Done")` — mark finished, stays in `backlog/tasks/` (visible on kanban)
+4. **Archive**: `task_complete` — moves to `backlog/completed/` (use only when explicitly cleaning up)
 
-Tasks follow a kanban flow: **To Do -> In Progress -> Done**. Use `task_edit` to move between statuses:
+**IMPORTANT**: Use `task_edit(status: "Done")` to mark tasks as done. Do NOT use `task_complete` unless the user explicitly asks to archive/clean up — it removes the task from the kanban.
 
-```text
-task_edit(id="XXX", status="In Progress")  # starting work
-task_edit(id="XXX", status="Done")         # finished work
-```
+### Cross-Branch Task Scanning (disabled)
 
-**Do NOT use `task_complete`** to mark tasks as done. `task_complete` moves the task file to `backlog/completed/`, hiding it from the board. Use it only when you intentionally want to archive a finished task off the board.
+`check_active_branches` and `remote_operations` are both **disabled** in `backlog/config.yml`. With worktrees, these features scan other branches and pull in tasks that were already completed/archived on `main` but still exist in `backlog/tasks/` on older branches — bloating the kanban with ghost tasks. Do not re-enable without accounting for worktree branch divergence.
 
-| MCP tool | Purpose |
-| --- | --- |
-| `task_edit(status="Done")` | Mark task done (stays visible on board) |
-| `task_complete` | Move to `completed/` folder (hides from board) |
-| `task_archive` | Move to archive (permanent removal from board) |
+### Multiline Field Gotcha
+
+The `finalSummary`, `description`, `implementationNotes`, and `planSet` MCP parameters are single-line JSON strings. Literal `\n` sequences are NOT interpreted as newlines — they render as the two characters `\` `n` in the markdown file. To write multiline content:
+
+- Use `task_edit` with the field for short single-paragraph content
+- For multiline content, edit the task markdown file directly with the file editing tool (the file path is shown in `task_view` output)
+
+The overview resource contains additional detail on decision frameworks, search-first workflow, and guides for task creation, execution, and completion.
 
 </CRITICAL_INSTRUCTION>
 

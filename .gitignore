@@ -2,6 +2,10 @@
 CLAUDE.md
 maps/*
 
+# E2E test artifacts (generated carts, HTML exports)
+spec/e2e_*.p8
+spec/e2e_html_export/
+
 # General
 .DS_Store
 .localized
