@@ -8,414 +8,417 @@ __lua__
 -- constants
 ----------------------------------------
 -- physics
-grav=0.4
-max_fall=3
-jump_str=-4.16
-move_spd=1.2
-run_spd=2.0
-run_jump_str=-5.2
-coyote=5 -- frames of jump grace after leaving edge
+grav = 0.4
+max_fall = 3
+jump_str = -4.16
+move_spd = 1.2
+run_spd = 2.0
+run_jump_str = -5.2
+coyote = 5 -- frames of jump grace after leaving edge
 
 -- map dimensions (in tiles)
-map_w=64
-map_h=16
+map_w = 64
+map_h = 16
 
 -- sprite flags
-f_solid=0
-f_hazard=1
-f_goal=2
-f_coin=3
+f_solid = 0
+f_hazard = 1
+f_goal = 2
+f_coin = 3
 
 -- game states
-st_play=0
-st_dead=1
-st_clear=2
+st_play = 0
+st_dead = 1
+st_clear = 2
 
 ----------------------------------------
 -- helpers
 ----------------------------------------
 
 -- get map tile at pixel coords
-function tile_at(px,py)
- return mget(flr(px/8),flr(py/8))
+function tile_at(px, py)
+  return mget(flr(px / 8), flr(py / 8))
 end
 
 -- check if pixel position has a
 -- tile with given flag set
-function tile_flag_at(px,py,flag)
- local t=tile_at(px,py)
- return t>0 and fget(t,flag)
+function tile_flag_at(px, py, flag)
+  local t = tile_at(px, py)
+  return t > 0 and fget(t, flag)
 end
 
 -- check solid at pixel
-function is_solid(px,py)
- return tile_flag_at(px,py,f_solid)
+function is_solid(px, py)
+  return tile_flag_at(px, py, f_solid)
 end
 
 -- check hazard at pixel
-function is_hazard(px,py)
- return tile_flag_at(px,py,f_hazard)
+function is_hazard(px, py)
+  return tile_flag_at(px, py, f_hazard)
 end
 
 -- check goal at pixel
-function is_goal(px,py)
- return tile_flag_at(px,py,f_goal)
+function is_goal(px, py)
+  return tile_flag_at(px, py, f_goal)
 end
 
 -- collect coin at pixel (remove from map)
-function collect_coin(px,py)
- local mx=flr(px/8)
- local my=flr(py/8)
- local t=mget(mx,my)
- if t>0 and fget(t,f_coin) then
-  mset(mx,my,0)
-  return true
- end
- return false
+function collect_coin(px, py)
+  local mx = flr(px / 8)
+  local my = flr(py / 8)
+  local t = mget(mx, my)
+  if t > 0 and fget(t, f_coin) then
+    mset(mx, my, 0)
+    return true
+  end
+  return false
 end
 
 ----------------------------------------
 -- player object
 ----------------------------------------
-function make_player(sx,sy)
- local p={
-  x=sx, y=sy,
-  dx=0, dy=0,
-  w=6, h=8,
-  grounded=false,
-  facing=1,
-  frame=0,
-  frame_t=0,
-   spawn_x=sx,
-   spawn_y=sy,
-   coyote_t=0,
-   running=false,
+function make_player(sx, sy)
+  local p = {
+    x = sx, y = sy,
+    dx = 0, dy = 0,
+    w = 6, h = 8,
+    grounded = false,
+    facing = 1,
+    frame = 0,
+    frame_t = 0,
+    spawn_x = sx,
+    spawn_y = sy,
+    coyote_t = 0,
+    running = false
   }
- return p
+  return p
 end
 
 -- move player with collision resolve
 function player_move(p)
- -- horizontal movement + resolve
- p.x+=p.dx
- if p.dx<0 then
-  -- left edge check
-  if is_solid(p.x,p.y+1) or
-     is_solid(p.x,p.y+p.h-1) then
-   p.x=flr(p.x/8)*8+8
-   p.dx=0
+  -- horizontal movement + resolve
+  p.x += p.dx
+  if p.dx < 0 then
+    -- left edge check
+    if is_solid(p.x, p.y + 1)
+        or is_solid(p.x, p.y + p.h - 1) then
+      p.x = flr(p.x / 8) * 8 + 8
+      p.dx = 0
+    end
+  elseif p.dx > 0 then
+    -- right edge check
+    if is_solid(p.x + p.w - 1, p.y + 1)
+        or is_solid(p.x + p.w - 1, p.y + p.h - 1) then
+      p.x = flr((p.x + p.w - 1) / 8) * 8 - p.w
+      p.dx = 0
+    end
   end
- elseif p.dx>0 then
-  -- right edge check
-  if is_solid(p.x+p.w-1,p.y+1) or
-     is_solid(p.x+p.w-1,p.y+p.h-1) then
-   p.x=flr((p.x+p.w-1)/8)*8-p.w
-   p.dx=0
-  end
- end
 
- -- clamp to left map edge
- if p.x<0 then p.x=0 end
+  -- clamp to left map edge
+  if p.x < 0 then p.x = 0 end
 
- -- vertical movement + resolve
- p.y+=p.dy
- p.grounded=false
- if p.dy<0 then
-  -- head bump
-  if is_solid(p.x+1,p.y) or
-     is_solid(p.x+p.w-2,p.y) then
-   p.y=flr(p.y/8)*8+8
-   p.dy=0
+  -- vertical movement + resolve
+  p.y += p.dy
+  p.grounded = false
+  if p.dy < 0 then
+    -- head bump
+    if is_solid(p.x + 1, p.y)
+        or is_solid(p.x + p.w - 2, p.y) then
+      p.y = flr(p.y / 8) * 8 + 8
+      p.dy = 0
+    end
+  elseif p.dy >= 0 then
+    -- landing
+    if is_solid(p.x + 1, p.y + p.h)
+        or is_solid(p.x + p.w - 2, p.y + p.h) then
+      p.y = flr((p.y + p.h) / 8) * 8 - p.h
+      p.dy = 0
+      p.grounded = true
+    end
   end
- elseif p.dy>=0 then
-  -- landing
-  if is_solid(p.x+1,p.y+p.h) or
-     is_solid(p.x+p.w-2,p.y+p.h) then
-   p.y=flr((p.y+p.h)/8)*8-p.h
-   p.dy=0
-   p.grounded=true
-  end
- end
 
- -- grounded check when stationary
- if not p.grounded and p.dy==0 then
-  if is_solid(p.x+1,p.y+p.h+1) or
-     is_solid(p.x+p.w-2,p.y+p.h+1) then
-   p.grounded=true
+  -- grounded check when stationary
+  if not p.grounded and p.dy == 0 then
+    if is_solid(p.x + 1, p.y + p.h + 1)
+        or is_solid(p.x + p.w - 2, p.y + p.h + 1) then
+      p.grounded = true
+    end
   end
- end
 end
 
 -- check hazard/goal/coin overlap
 function player_check_tiles(p)
- for ox=1,p.w-2,p.w-3 do
-  for oy=0,p.h-1,flr(p.h/2) do
-   local px=p.x+ox
-   local py=p.y+oy
-   if is_hazard(px,py) then
-    return "dead"
-   end
-   if is_goal(px,py) then
-    return "clear"
-   end
-   if collect_coin(px,py) then
-    coins+=1
-    sfx(1)
-   end
+  for ox = 1, p.w - 2, p.w - 3 do
+    for oy = 0, p.h - 1, flr(p.h / 2) do
+      local px = p.x + ox
+      local py = p.y + oy
+      if is_hazard(px, py) then
+        return "dead"
+      end
+      if is_goal(px, py) then
+        return "clear"
+      end
+      if collect_coin(px, py) then
+        coins += 1
+        sfx(1)
+      end
+    end
   end
- end
- -- fell off bottom of map
- if p.y>map_h*8+16 then
-  return "dead"
- end
- return "ok"
+  -- fell off bottom of map
+  if p.y > map_h * 8 + 16 then
+    return "dead"
+  end
+  return "ok"
 end
 
 ----------------------------------------
 -- camera
 ----------------------------------------
 function update_cam(p)
- local tx=p.x-60
- local ty=p.y-64
+  local tx = p.x - 60
+  local ty = p.y - 64
 
- cam_x+=(tx-cam_x)*0.15
- cam_y+=(ty-cam_y)*0.15
+  cam_x += (tx - cam_x) * 0.15
+  cam_y += (ty - cam_y) * 0.15
 
- cam_x=mid(0,cam_x,map_w*8-128)
- cam_y=mid(0,cam_y,map_h*8-128)
+  cam_x = mid(0, cam_x, map_w * 8 - 128)
+  cam_y = mid(0, cam_y, map_h * 8 - 128)
 end
 
 ----------------------------------------
 -- particles
 ----------------------------------------
-particles={}
+particles = {}
 
-function spawn_particles(x,y,col,n)
- for i=1,n do
-  add(particles,{
-   x=x,y=y,
-   dx=rnd(2)-1,
-   dy=-rnd(2)-0.5,
-   life=15+rnd(10),
-   col=col,
-  })
- end
+function spawn_particles(x, y, col, n)
+  for i = 1, n do
+    add(
+      particles, {
+        x = x, y = y,
+        dx = rnd(2) - 1,
+        dy = -rnd(2) - 0.5,
+        life = 15 + rnd(10),
+        col = col
+      }
+    )
+  end
 end
 
 function update_particles()
- for i=#particles,1,-1 do
-  local pt=particles[i]
-  pt.x+=pt.dx
-  pt.y+=pt.dy
-  pt.dy+=0.1
-  pt.life-=1
-  if pt.life<=0 then
-   del(particles,pt)
+  for i = #particles, 1, -1 do
+    local pt = particles[i]
+    pt.x += pt.dx
+    pt.y += pt.dy
+    pt.dy += 0.1
+    pt.life -= 1
+    if pt.life <= 0 then
+      del(particles, pt)
+    end
   end
- end
 end
 
 function draw_particles()
- for pt in all(particles) do
-  pset(pt.x,pt.y,pt.col)
- end
+  for pt in all(particles) do
+    pset(pt.x, pt.y, pt.col)
+  end
 end
 
 ----------------------------------------
 -- game state machine
 ----------------------------------------
 function _init()
- state=st_play
- coins=0
- death_t=0
- clear_t=0
+  state = st_play
+  coins = 0
+  death_t = 0
+  clear_t = 0
 
- -- reload map from rom so coins
- -- and spawn marker are restored
- reload(0x2000,0x2000,0x1000)
+  -- reload map from rom so coins
+  -- and spawn marker are restored
+  reload(0x2000, 0x2000, 0x1000)
 
- -- find spawn marker (sprite 6)
- local sx,sy=16,104
- for my=0,map_h-1 do
-  for mx=0,map_w-1 do
-   if mget(mx,my)==6 then
-    sx=mx*8
-    sy=my*8
-    mset(mx,my,0)
-   end
+  -- find spawn marker (sprite 6)
+  local sx, sy = 16, 104
+  for my = 0, map_h - 1 do
+    for mx = 0, map_w - 1 do
+      if mget(mx, my) == 6 then
+        sx = mx * 8
+        sy = my * 8
+        mset(mx, my, 0)
+      end
+    end
   end
- end
 
- player=make_player(sx,sy)
- cam_x=player.x-60
- cam_y=0
- particles={}
+  player = make_player(sx, sy)
+  cam_x = player.x - 60
+  cam_y = 0
+  particles = {}
 end
 
 function _update60()
- if state==st_play then
-  update_play()
- elseif state==st_dead then
-  update_dead()
- elseif state==st_clear then
-  update_clear()
- end
- update_particles()
+  if state == st_play then
+    update_play()
+  elseif state == st_dead then
+    update_dead()
+  elseif state == st_clear then
+    update_clear()
+  end
+  update_particles()
 end
 
 function _draw()
- cls(12)
+  cls(12)
 
- camera(cam_x,cam_y)
+  camera(cam_x, cam_y)
 
- -- draw map
- map(0,0,0,0,map_w,map_h)
+  -- draw map
+  map(0, 0, 0, 0, map_w, map_h)
 
- -- draw player
- if state==st_play or
-    (state==st_dead and death_t<10) then
-  local flip_x=(player.facing==-1)
-  local sn=get_player_spr(player)
-  spr(sn,player.x,player.y,1,1,flip_x)
- end
-
- draw_particles()
-
- -- hud (screen-fixed)
- camera(0,0)
- -- coin icon + count
- spr(7,2,2)
- print(coins,12,4,7)
-
- if state==st_dead and death_t>20 then
-  rectfill(20,54,108,68,1)
-  print("press \x97/\x8e to retry",24,58,7)
- end
-
- if state==st_clear then
-  rectfill(20,44,108,72,1)
-  print("level clear!",36,48,10)
-  if clear_t>30 then
-   print("press \x97/\x8e to restart",22,62,7)
+  -- draw player
+  if state == st_play
+      or (state == st_dead and death_t < 10) then
+    local flip_x = (player.facing == -1)
+    local sn = get_player_spr(player)
+    spr(sn, player.x, player.y, 1, 1, flip_x)
   end
- end
+
+  draw_particles()
+
+  -- hud (screen-fixed)
+  camera(0, 0)
+  -- coin icon + count
+  spr(7, 2, 2)
+  print(coins, 12, 4, 7)
+
+  if state == st_dead and death_t > 20 then
+    rectfill(20, 54, 108, 68, 1)
+    print("press \x97/\x8e to retry", 24, 58, 7)
+  end
+
+  if state == st_clear then
+    rectfill(20, 44, 108, 72, 1)
+    print("level clear!", 36, 48, 10)
+    if clear_t > 30 then
+      print("press \x97/\x8e to restart", 22, 62, 7)
+    end
+  end
 end
 
 ----------------------------------------
 -- state: playing
 ----------------------------------------
 function update_play()
- local p=player
+  local p = player
 
- -- run state (x button)
- p.running=btn(5)
- local spd=move_spd
- if p.running then spd=run_spd end
+  -- run state (x button)
+  p.running = btn(5)
+  local spd = move_spd
+  if p.running then spd = run_spd end
 
- -- horizontal input
- p.dx=0
- if btn(0) then
-  p.dx=-spd
-  p.facing=-1
- end
- if btn(1) then
-  p.dx=spd
-  p.facing=1
- end
+  -- horizontal input
+  p.dx = 0
+  if btn(0) then
+    p.dx = -spd
+    p.facing = -1
+  end
+  if btn(1) then
+    p.dx = spd
+    p.facing = 1
+  end
 
- -- coyote time: track grace frames
- -- after walking off an edge
- if p.grounded then
-  p.coyote_t=coyote
- else
-  p.coyote_t=max(p.coyote_t-1,0)
- end
-
- -- jump: o button only (btn 4)
- -- stronger jump when running
- local can_jump=p.grounded or p.coyote_t>0
- if can_jump and btnp(4) then
-  if p.running then
-   p.dy=run_jump_str
+  -- coyote time: track grace frames
+  -- after walking off an edge
+  if p.grounded then
+    p.coyote_t = coyote
   else
-   p.dy=jump_str
+    p.coyote_t = max(p.coyote_t - 1, 0)
   end
-  p.grounded=false
-  p.coyote_t=0
-  sfx(0)
- end
 
- -- variable jump: cut upward velocity
- -- when o button released early
- if p.dy<0 and not btn(4) then
-  p.dy*=0.4
- end
-
- -- gravity
- p.dy+=grav
- if p.dy>max_fall then p.dy=max_fall end
-
- -- move with collision
- player_move(p)
-
- -- animation timer
- if p.dx!=0 and p.grounded then
-  p.frame_t+=1
-  if p.frame_t>4 then
-   p.frame_t=0
-   p.frame=(p.frame+1)%3
+  -- jump: o button only (btn 4)
+  -- stronger jump when running
+  local can_jump = p.grounded or p.coyote_t > 0
+  if can_jump and btnp(4) then
+    if p.running then
+      p.dy = run_jump_str
+    else
+      p.dy = jump_str
+    end
+    p.grounded = false
+    p.coyote_t = 0
+    sfx(0)
   end
- else
-  p.frame=0
-  p.frame_t=0
- end
 
- -- tile interactions
- local result=player_check_tiles(p)
- if result=="dead" then
-  state=st_dead
-  death_t=0
-  spawn_particles(p.x+3,p.y+4,8,20)
-  sfx(2)
- elseif result=="clear" then
-  state=st_clear
-  clear_t=0
-  spawn_particles(p.x+3,p.y+4,10,30)
-  sfx(3)
- end
+  -- variable jump: cut upward velocity
+  -- when o button released early
+  if p.dy < 0 and not btn(4) then
+    p.dy *= 0.4
+  end
 
- update_cam(p)
+  -- gravity
+  p.dy += grav
+  if p.dy > max_fall then p.dy = max_fall end
+
+  -- move with collision
+  player_move(p)
+
+  -- animation timer
+  if p.dx != 0 and p.grounded then
+    p.frame_t += 1
+    if p.frame_t > 4 then
+      p.frame_t = 0
+      p.frame = (p.frame + 1) % 3
+    end
+  else
+    p.frame = 0
+    p.frame_t = 0
+  end
+
+  -- tile interactions
+  local result = player_check_tiles(p)
+  if result == "dead" then
+    state = st_dead
+    death_t = 0
+    spawn_particles(p.x + 3, p.y + 4, 8, 20)
+    sfx(2)
+  elseif result == "clear" then
+    state = st_clear
+    clear_t = 0
+    spawn_particles(p.x + 3, p.y + 4, 10, 30)
+    sfx(3)
+  end
+
+  update_cam(p)
 end
 
 function get_player_spr(p)
- if not p.grounded then
-  return 3
- end
- if p.dx!=0 then
-  return 1+p.frame%2
- end
- return 1
+  if not p.grounded then
+    return 3
+  end
+  if p.dx != 0 then
+    return 1 + p.frame % 2
+  end
+  return 1
 end
 
 ----------------------------------------
 -- state: dead
 ----------------------------------------
 function update_dead()
- death_t+=1
- if death_t>20 and (btnp(4) or btnp(5)) then
-  _init()
- end
+  death_t += 1
+  if death_t > 20 and (btnp(4) or btnp(5)) then
+    _init()
+  end
 end
 
 ----------------------------------------
 -- state: level clear
 ----------------------------------------
 function update_clear()
- clear_t+=1
- if clear_t>30 and (btnp(4) or btnp(5)) then
-  _init()
- end
+  clear_t += 1
+  if clear_t > 30 and (btnp(4) or btnp(5)) then
+    _init()
+  end
 end
+
 __gfx__
 00000000008880000088800000888000bbbbbbbb5555555500a00a0000aaa000000000000bbb0700000000000000000000000000000000000000000000000000
 000000000888880008888800088888003b3b3b3b565656560a0aa0a00a999a00000000000bbb0700000000000000000000000000000000000000000000000000
