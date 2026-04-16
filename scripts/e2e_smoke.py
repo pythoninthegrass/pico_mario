@@ -9,6 +9,8 @@
 # exclude-newer = "2026-04-30T00:00:00Z"
 # ///
 
+# pyright: reportMissingImports=false
+
 """
 E2E smoke test: assemble a test cart, run it in PICO-8, compare
 the captured screenshot against a baseline image.

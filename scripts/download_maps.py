@@ -7,6 +7,8 @@
 # exclude-newer = "2026-04-30T00:00:00Z"
 # ///
 
+# pyright: reportMissingImports=false
+
 """
 Usage:
     uv run scripts/download_maps.py [-o DIR] [--dry-run]
