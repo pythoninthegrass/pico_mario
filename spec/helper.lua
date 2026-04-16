@@ -63,7 +63,7 @@ local function transpile_p8(source)
 end
 
 -- Extract and load the __lua__ section from the .p8 cartridge
-local function load_cart(path)
+local function load_cart(path) -- luacheck: ignore 211
   local f = io.open(path, 'r')
   if not f then error('cannot open cart: ' .. path) end
 

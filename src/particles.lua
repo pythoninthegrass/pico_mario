@@ -4,7 +4,7 @@
 particles={}
 
 function spawn_particles(x,y,col,n)
- for i=1,n do
+ for _=1,n do
   add(particles,{
    x=x,y=y,
    dx=rnd(2)-1,

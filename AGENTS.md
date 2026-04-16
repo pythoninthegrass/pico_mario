@@ -63,6 +63,12 @@ uv run scripts/generate_cart.py --no-sprites
 ruff format scripts/
 ruff check scripts/
 
+# Run pre-commit hooks (via prek)
+prek run --all-files
+
+# Run a specific hook
+prek run luacheck --all-files
+
 # Run unit tests (busted)
 busted
 
@@ -111,10 +117,12 @@ Always use Context7 MCP when I need library/API documentation, code generation, 
 
 ### Libraries
 
+- j178/prek
 - jdx/mise
 - microsoft/playwright-python
+- mpeterv/luacheck
 - mrlesk/backlog.md
-- /websites/lexaloffle_dl_pico-8_manual
+- websites/lexaloffle_dl_pico-8_manual
 - websites/taskfile_dev
 
 <!-- BACKLOG.MD MCP GUIDELINES START -->
