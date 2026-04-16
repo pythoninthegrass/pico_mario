@@ -1,0 +1,66 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: "3.0"
+
+set: ['e', 'u', 'pipefail']
+shopt: ['globstar']
+
+dotenv: ['.env']
+
+vars:
+  MISE_SHIMS: "{{.HOME}}/.local/share/mise/shims"
+
+env:
+  PATH: "{{.MISE_SHIMS}}:{{.PATH}}"
+
+includes:
+  python:
+    taskfile: ./taskfiles/python.yml
+  pico8:
+    taskfile: ./taskfiles/pico8.yml
+
+tasks:
+  default:
+    desc: "List available tasks"
+    cmds:
+      - task --list
+
+  lint:
+    desc: "Run all linters"
+    cmds:
+      - task: python:lint
+
+  format:
+    desc: "Run all formatters"
+    cmds:
+      - task: python:format
+
+  build:
+    desc: "Assemble cart"
+    cmds:
+      - task: pico8:build
+
+  test:
+    desc: "Run unit tests"
+    cmds:
+      - task: pico8:test
+
+  test:e2e:
+    desc: "Run visual E2E tests"
+    cmds:
+      - task: pico8:test:e2e
+
+  test:e2e:update:
+    desc: "Regenerate E2E baselines"
+    cmds:
+      - task: pico8:test:e2e:update
+
+  play:
+    desc: "Copy cart to iCloud"
+    cmds:
+      - task: pico8:play
+
+  launch:
+    desc: "Launch cart in PICO-8"
+    cmds:
+      - task: pico8:launch

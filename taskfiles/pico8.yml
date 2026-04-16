@@ -1,0 +1,88 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: "3.0"
+
+set: ['e', 'u', 'pipefail']
+
+vars:
+  PICO8_BIN: /Applications/PICO-8.app/Contents/MacOS/pico8
+  CART: mario.p8
+  ICLOUD_DEST: ~/iCloud/pico-8/carts/marioish/mario.p8
+
+tasks:
+  build:
+    desc: "Assemble src/*.lua into cart (no sprite patching)"
+    cmds:
+      - uv run scripts/generate_cart.py --no-sprites
+    sources:
+      - src/*.lua
+      - scripts/generate_cart.py
+    generates:
+      - "{{.CART}}"
+    preconditions:
+      - sh: command -v uv &>/dev/null
+        msg: "uv not found. Install via mise."
+
+  build:sprites:
+    internal: true
+    desc: "Assemble cart with sprite patching (blocked until map migrated to new sprite IDs)"
+    cmds:
+      - uv run scripts/generate_cart.py
+    sources:
+      - src/*.lua
+      - scripts/generate_cart.py
+    generates:
+      - "{{.CART}}"
+    preconditions:
+      - sh: command -v uv &>/dev/null
+        msg: "uv not found. Install via mise."
+
+  test:
+    desc: "Run busted unit tests"
+    cmds:
+      - busted
+    preconditions:
+      - sh: command -v busted &>/dev/null
+        msg: "busted not found. Install via luarocks."
+
+  test:e2e:
+    desc: "Run visual E2E tests (requires PICO-8)"
+    cmds:
+      - uv run scripts/e2e_test.py
+    preconditions:
+      - sh: command -v uv &>/dev/null
+        msg: "uv not found. Install via mise."
+      - sh: test -x "{{.PICO8_BIN}}"
+        msg: "PICO-8 not found at {{.PICO8_BIN}}"
+      - sh: test -f "{{.CART}}"
+        msg: "Cart not found. Run 'task pico8:build' first."
+
+  test:e2e:update:
+    desc: "Regenerate E2E baselines"
+    cmds:
+      - uv run scripts/e2e_test.py --update-baselines
+    preconditions:
+      - sh: command -v uv &>/dev/null
+        msg: "uv not found. Install via mise."
+      - sh: test -x "{{.PICO8_BIN}}"
+        msg: "PICO-8 not found at {{.PICO8_BIN}}"
+      - sh: test -f "{{.CART}}"
+        msg: "Cart not found. Run 'task pico8:build' first."
+
+  play:
+    desc: "Copy cart to PICO-8 iCloud carts folder"
+    cmds:
+      - cp "{{.CART}}" "{{.ICLOUD_DEST}}"
+    preconditions:
+      - sh: test -f "{{.CART}}"
+        msg: "Cart not found. Run 'task pico8:build' first."
+
+  launch:
+    desc: "Launch cart in PICO-8"
+    cmds:
+      - '"{{.PICO8_BIN}}" -run "{{.CART}}"'
+    preconditions:
+      - sh: test -x "{{.PICO8_BIN}}"
+        msg: "PICO-8 not found at {{.PICO8_BIN}}"
+      - sh: test -f "{{.CART}}"
+        msg: "Cart not found. Run 'task pico8:build' first."

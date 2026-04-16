@@ -1,9 +1,10 @@
 ---
 id: TASK-023
 title: Add Taskfile.yml with Lua/PICO-8 and Python task runners
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-04-16 06:45'
+updated_date: '2026-04-16 21:31'
 labels:
   - tooling
   - dx
@@ -17,6 +18,7 @@ documentation:
   - 'https://taskfile.dev/usage'
   - 'https://taskfile.dev/reference/schema'
 priority: medium
+ordinal: 1000
 ---
 
 ## Description
@@ -27,19 +29,19 @@ Set up Taskfile (https://taskfile.dev) tooling for this repo to replace ad-hoc s
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Taskfile.yml exists at repo root with version 3.0, set/shopt, and dotenv like mt template
-- [ ] #2 task lint -- runs ruff format --check and ruff check on scripts/
-- [ ] #3 task format -- runs ruff format on scripts/
-- [ ] #4 task build -- runs uv run scripts/generate_cart.py --no-sprites
-- [ ] #5 task build:sprites -- runs generate_cart.py with sprite patching
-- [ ] #6 task test -- runs busted (unit tests)
-- [ ] #7 task test:e2e -- runs uv run scripts/e2e_test.py
-- [ ] #8 task test:e2e:update -- runs e2e with --update-baselines
-- [ ] #9 task play -- copies cart to PICO-8 iCloud carts folder
-- [ ] #10 task launch -- runs pico8 -run mario.p8
-- [ ] #11 task default -- lists available tasks
-- [ ] #12 All tasks use preconditions or status checks where appropriate (e.g. command -v busted, test -f mario.p8)
-- [ ] #13 mise is used for runtime paths (MISE_SHIMS on PATH)
+- [x] #1 Taskfile.yml exists at repo root with version 3.0, set/shopt, and dotenv like mt template
+- [x] #2 task lint -- runs ruff format --check and ruff check on scripts/
+- [x] #3 task format -- runs ruff format on scripts/
+- [x] #4 task build -- runs uv run scripts/generate_cart.py --no-sprites
+- [x] #5 task build:sprites -- runs generate_cart.py with sprite patching
+- [x] #6 task test -- runs busted (unit tests)
+- [x] #7 task test:e2e -- runs uv run scripts/e2e_test.py
+- [x] #8 task test:e2e:update -- runs e2e with --update-baselines
+- [x] #9 task play -- copies cart to PICO-8 iCloud carts folder
+- [x] #10 task launch -- runs pico8 -run mario.p8
+- [x] #11 task default -- lists available tasks
+- [x] #12 All tasks use preconditions or status checks where appropriate (e.g. command -v busted, test -f mario.p8)
+- [x] #13 mise is used for runtime paths (MISE_SHIMS on PATH)
 <!-- AC:END -->
 
 ## Definition of Done

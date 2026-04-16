@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: "3.0"
+
+set: ['e', 'u', 'pipefail']
+
+tasks:
+  lint:
+    desc: "Run ruff linter and format check on scripts/"
+    cmds:
+      - ruff format --check --diff scripts/
+      - ruff check scripts/
+    preconditions:
+      - sh: command -v ruff &>/dev/null
+        msg: "ruff not found. Install via mise or uv."
+
+  format:
+    desc: "Run ruff formatter on scripts/"
+    cmds:
+      - ruff format scripts/
+    preconditions:
+      - sh: command -v ruff &>/dev/null
+        msg: "ruff not found. Install via mise or uv."

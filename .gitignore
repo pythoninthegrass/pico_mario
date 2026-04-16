@@ -1,4 +1,5 @@
 # ETC
+.task/
 CLAUDE.md
 maps/*
 
@@ -12,8 +13,7 @@ spec/e2e_html_export/
 __MACOSX/
 .AppleDouble
 .LSOverride
-Icon[
-]
+Icon\r
 
 # Thumbnails
 ._*

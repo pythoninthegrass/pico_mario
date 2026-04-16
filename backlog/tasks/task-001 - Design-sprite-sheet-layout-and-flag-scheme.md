@@ -1,10 +1,10 @@
 ---
 id: TASK-001
 title: Design sprite sheet layout and flag scheme
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-04-15 20:46'
-updated_date: '2026-04-16 20:38'
+updated_date: '2026-04-16 21:29'
 labels: []
 milestone: m-0
 dependencies: []
@@ -42,8 +42,8 @@ generate_cart.py already had full SPRITES (42 sprites) and SPRITE_FLAGS dicts fr
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 Cart loads in PICO-8 without errors
-- [ ] #2 Play-test affected functionality
+- [x] #1 Cart loads in PICO-8 without errors
+- [x] #2 Play-test affected functionality
 - [x] #3 Copy cart to iCloud: cp mario.p8 ~/iCloud/pico-8/carts/marioish/mario.p8
 - [x] #4 Token count verified under 8192 limit
 <!-- DOD:END -->

@@ -34,7 +34,7 @@ local function transpile_line(line)
   for _, entry in ipairs(ops) do
     -- match: lhs (no = before op) op= rhs
     -- use frontier pattern: the char before the op must not be =
-    local m_pat = '^(%s*[%w_.%[%]%(%)]+)' .. entry.pat .. '(.+)$'
+    local m_pat = '^(%s*[%w_.%[%]%(%)]+)%s*' .. entry.pat .. '(.+)$'
     local lhs, rhs = code:match(m_pat)
     if lhs then
       -- verify this isn't just a regular assignment like x=-5
