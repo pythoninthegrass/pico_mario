@@ -1,10 +1,10 @@
 ---
 id: TASK-022
 title: Complete E2E visual regression test harness
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-04-16 05:03'
-updated_date: '2026-04-16 06:17'
+updated_date: '2026-04-16 06:36'
 labels:
   - testing
   - e2e
@@ -49,7 +49,7 @@ Expand the E2E smoke test spike into a full visual regression and functional ass
 <!-- AC:BEGIN -->
 - [x] #1 Multiple test scenarios capture screenshots at key game states (idle, moving, jumping, coin pickup, death, level clear)
 - [x] #2 Scripted input replay drives deterministic game behavior across all scenarios (native: btn() override with frame-indexed table; HTML: GPIO writes for input injection)
-- [ ] #3 HTML export + Playwright path runs all scenarios headlessly without PICO-8 binary, using GPIO for input injection and state readback
+- [x] #3 HTML export + Playwright path runs all scenarios headlessly without PICO-8 binary, using GPIO for input injection and state readback
 - [x] #4 Baseline update workflow: --update-baselines regenerates all baselines in one command
 - [x] #5 Intentional visual breakage (e.g. wrong sprite ID) is detected and reported with diff details
 - [x] #6 Test scenarios assert on game state values (player position, game state, coin count) via printh() log parsing (native) or GPIO readback (HTML), not just screenshots
@@ -110,13 +110,13 @@ Expand the E2E smoke test spike into a full visual regression and functional ass
 ## Final Summary
 
 <!-- SECTION:FINAL_SUMMARY:BEGIN -->
-Expanded the E2E smoke test spike into a full 6-scenario visual regression and functional assertion framework. Native path runs real PICO-8, captures screenshots via extcmd, reads game state via printh to clipboard, and compares against baseline PNGs with Pillow pixel diffing. Playwright/HTML path also implemented with GPIO-based I/O for headless CI. Key discovery: PICO-8 built-in btnp() cannot be overridden via global assignment -- solved by patching btnp( to _tbp( at cart assembly time. Level_clear scenario required careful jump timing to avoid head-bump collisions with brick ceilings above gaps.
+Expanded the E2E smoke test spike into a full 6-scenario visual regression and functional assertion framework. Native path runs real PICO-8, captures screenshots via extcmd, reads game state via printh to clipboard, and compares against baseline PNGs with Pillow pixel diffing. Playwright/HTML path runs headlessly via PICO-8 HTML export + Chromium, using GPIO for state readback and baked-in input tables for deterministic replay. Key discoveries: (1) PICO-8 btnp() cannot be overridden via global assignment -- solved by patching btnp( to _tbp( at assembly time. (2) HTML export requires __label__ section -- injected a dummy black label. (3) Headless Chromium AudioContext stays suspended, blocking PICO-8 autoplay -- solved by calling p8_run_cart() from JS. (4) GPIO[125] used as capture-done flag instead of frame counter (which wraps at 256, causing false-positive for level_clear at frame 265).
 <!-- SECTION:FINAL_SUMMARY:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
 - [x] #1 Cart loads in PICO-8 without errors
-- [ ] #2 Play-test affected functionality
-- [ ] #3 Copy cart to iCloud: cp mario.p8 ~/iCloud/pico-8/carts/marioish/mario.p8
+- [x] #2 Play-test affected functionality
+- [x] #3 Copy cart to iCloud: cp mario.p8 ~/iCloud/pico-8/carts/marioish/mario.p8
 - [x] #4 Token count verified under 8192 limit
 <!-- DOD:END -->

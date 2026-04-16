@@ -203,13 +203,15 @@ uv run scripts/e2e_test.py --mode playwright
 
 ### GPIO protocol (HTML/Playwright path)
 
+Inputs are baked into the Lua `_inp` table at assembly time (same as native). GPIO is output-only for state readback.
+
 | Byte(s) | Direction | Content |
 |---------|-----------|---------|
-| 0-5 | JS -> Lua | Button state (0=off, nonzero=on) |
 | 64 | Lua -> JS | game state (0=play, 1=dead, 2=clear) |
 | 65 | Lua -> JS | coin count |
 | 66-67 | Lua -> JS | player.x (low, high byte) |
 | 68-69 | Lua -> JS | player.y (low, high byte) |
+| 125 | Lua -> JS | capture done (1 = ready for screenshot) |
 | 126 | Lua -> JS | frame counter (mod 256) |
 | 127 | Lua -> JS | ready flag (1 = running) |
 
@@ -219,6 +221,9 @@ uv run scripts/e2e_test.py --mode playwright
 - PICO-8 saves screenshots to Desktop. The runner polls for the file, then moves it to `/tmp/pico8_e2e/`.
 - Brick ceilings above gaps cause head-bump collisions. The `level_clear` scenario must jump early enough that the player rises above the ceiling bricks before reaching them horizontally.
 - The `printh(msg, "@clip")` writes to the macOS clipboard. The runner reads it via `pbpaste`.
+- PICO-8 HTML export requires a `__label__` section in the cart. The test runner injects a dummy (black) label for HTML mode.
+- Headless Chromium can't autoplay PICO-8 (AudioContext stays suspended). The runner calls `p8_run_cart()` via JS to start the cart.
+- HTML baselines are separate from native (`<name>_html.png`) because rendering may differ slightly between native PICO-8 and the JS/WASM export.
 
 ## Naming conventions
 

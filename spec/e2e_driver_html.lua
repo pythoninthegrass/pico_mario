@@ -1,14 +1,14 @@
 -- e2e test driver (html/playwright mode)
 -- appended after game code by e2e_test.py
--- reads button input from GPIO (bytes 0-5),
+-- inputs baked into _inp table (same as native driver).
 -- writes game state to GPIO for Playwright readback.
 
--- GPIO protocol:
---  read:  0-5   = button state (0=off, nonzero=on)
+-- GPIO protocol (output only):
 --  write: 64    = game state (0=play,1=dead,2=clear)
 --  write: 65    = coin count
 --  write: 66-67 = player.x (low, high byte)
 --  write: 68-69 = player.y (low, high byte)
+--  write: 125   = capture done (1=ready for screenshot)
 --  write: 126   = frame counter (mod 256)
 --  write: 127   = ready flag (1=running)
 
@@ -30,17 +30,16 @@ local _gd=_draw
 poke(0x5f80+127,1)
 
 function btn(i)
- -- try scripted input table first, fall back to GPIO
- local b=_inp[_tf]
- if b then
-  return b[i] or false
- end
- return peek(0x5f80+i)!=0
+ local b=_inp[_tf] or {}
+ if b[i] then return true end
+ return false
 end
 
-function btnp(i)
- if not btn(i) then return false end
- return not (_pb[i] or false)
+-- _tbp replaces btnp calls (btnp cannot be overridden directly)
+function _tbp(i)
+ local b=_inp[_tf] or {}
+ if not b[i] then return false end
+ return not _pb[i]
 end
 
 function _update60()
@@ -67,6 +66,7 @@ function _draw()
  _gd()
  if _tf>=$CAPTURE_FRAME and not _td then
   _td=true
-  -- no extcmd in html mode; playwright takes the screenshot
+  -- signal capture-ready to Playwright via GPIO[125]
+  poke(0x5f80+125,1)
  end
 end

@@ -10,6 +10,9 @@
 # exclude-newer = "2026-04-30T00:00:00Z"
 # ///
 
+# pyright: reportMissingImports=false
+
+
 """
 E2E visual regression and functional assertion test runner.
 
@@ -255,6 +258,10 @@ def assemble_test_cart(scenario: Scenario, mode: str = "native") -> Path:
     # global assignment, so we rename calls at assembly time.
     combined = combined.replace("btnp(", "_tbp(")
     sections["__lua__"] = combined.split("\n")
+
+    # HTML export requires a __label__ section (128 lines of 128 hex '0's)
+    if mode == "html" and "__label__" not in sections:
+        sections["__label__"] = ["0" * 128 for _ in range(128)]
 
     cart_path = REPO_ROOT / "spec" / f"e2e_{scenario.name}.p8"
     cart_path.write_text(emit_p8(header, sections))
@@ -530,16 +537,27 @@ def run_native(scenario: Scenario, update_baselines: bool = False) -> TestResult
 # Playwright runner
 # ---------------------------------------------------------------------------
 def export_html(cart_path: Path) -> Path:
-    """Export a .p8 cart to HTML via PICO-8 export command."""
+    """Export a .p8 cart to a single HTML file via PICO-8 CLI."""
     export_dir = REPO_ROOT / "spec" / "e2e_html_export"
     export_dir.mkdir(parents=True, exist_ok=True)
-    html_path = export_dir / "index.html"
+    # Name the HTML after the cart (e.g. e2e_idle.html)
+    html_name = cart_path.stem + ".html"
+    html_path = export_dir / html_name
 
+    # PICO-8 CLI: pico8 <cart>.p8 -export "<name>.html"
+    # -export is relative to the cart's directory, so we use the bare filename
     subprocess.run(
-        [PICO8_BIN, "-export", str(html_path), str(cart_path)],
+        [PICO8_BIN, str(cart_path), "-export", html_name],
         check=True,
         capture_output=True,
+        cwd=str(export_dir),
     )
+
+    # Enable autoplay so Playwright doesn't need a click to start the cart
+    text = html_path.read_text()
+    text = text.replace("var p8_autoplay = false", "var p8_autoplay = true")
+    html_path.write_text(text)
+
     return html_path
 
 
@@ -561,32 +579,27 @@ async def run_playwright_scenario(
         page = await browser.new_page()
         await page.goto(f"file://{html_path}")
 
-        # wait for PICO-8 runtime to initialize
+        # wait for PICO-8 runtime (Module) to be ready
         await page.wait_for_function(
-            "typeof pico8_gpio !== 'undefined'",
+            "typeof pico8_gpio !== 'undefined' && typeof p8_run_cart === 'function'",
             timeout=15000,
         )
+        # headless Chromium can't autoplay (AudioContext stays suspended),
+        # so kick the cart manually
+        await page.evaluate("p8_run_cart()")
+
         # wait for ready flag from Lua driver
         await page.wait_for_function(
             "pico8_gpio[127] === 1",
             timeout=15000,
         )
 
-        # inject inputs frame-by-frame, synchronized via GPIO frame counter
-        for frame in range(scenario.capture_frame + 5):
-            # wait for Lua to advance to this frame
-            await page.wait_for_function(
-                f"pico8_gpio[126] >= {frame % 256}",
-                timeout=5000,
-            )
-
-            # set button state
-            buttons = scenario.inputs.get(frame, [])
-            js_parts = []
-            for b in range(6):
-                val = 1 if b in buttons else 0
-                js_parts.append(f"pico8_gpio[{b}]={val}")
-            await page.evaluate(";".join(js_parts))
+        # inputs are baked into the Lua _inp table; wait for capture-done flag
+        # GPIO[125] is set to 1 by the driver when capture_frame is reached
+        await page.wait_for_function(
+            "pico8_gpio[125] === 1",
+            timeout=30000,
+        )
 
         # read state from GPIO
         state_data = await page.evaluate(
