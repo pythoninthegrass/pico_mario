@@ -1,10 +1,10 @@
 ---
 id: TASK-023
 title: Add Taskfile.yml with Lua/PICO-8 and Python task runners
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-04-16 06:45'
-updated_date: '2026-04-16 21:31'
+updated_date: '2026-04-16 22:27'
 labels:
   - tooling
   - dx

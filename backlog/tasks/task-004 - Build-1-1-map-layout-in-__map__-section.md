@@ -1,10 +1,10 @@
 ---
 id: TASK-004
 title: Build 1-1 map layout in __map__ section
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-04-15 20:47'
-updated_date: '2026-04-15 20:47'
+updated_date: '2026-04-16 22:29'
 labels: []
 milestone: m-0
 dependencies:
