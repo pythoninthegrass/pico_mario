@@ -1,6 +1,6 @@
 # pico_mario
 
-A Super Mario Bros clone for the Pico-8 fantasy console.
+A Super Mario Bros clone for the [Pico-8 fantasy console](https://www.lexaloffle.com/pico-8.php).
 
 ## Development
 
