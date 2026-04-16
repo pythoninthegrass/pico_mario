@@ -7,8 +7,8 @@
     "EditorConfig.EditorConfig",
     "edwinhuish.better-comments-next",
     "ms-python.python",
+    "pollywoggames.pico8-ls",
     "ryu1kn.partial-diff",
-    "sumneko.lua",
     "yzhang.markdown-all-in-one",
   ]
 }
