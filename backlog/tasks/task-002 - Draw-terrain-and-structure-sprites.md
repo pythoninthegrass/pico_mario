@@ -1,10 +1,10 @@
 ---
 id: TASK-002
 title: Draw terrain and structure sprites
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-04-15 20:46'
-updated_date: '2026-04-16 22:29'
+updated_date: '2026-04-17 17:11'
 labels: []
 milestone: m-0
 dependencies:
@@ -27,18 +27,18 @@ Depends on sprite sheet layout task for ID assignments.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Ground tile visually reads as brown brick ground
-- [ ] #2 Brick block has visible mortar lines
-- [ ] #3 ? block has yellow body with visible ? symbol and animation frame
-- [ ] #4 Pipe tiles assemble into recognizable green pipes (2 wide, variable height)
-- [ ] #5 Flagpole and castle tiles assemble into recognizable end-of-level structures
-- [ ] #6 All sprites defined in generate_cart.py and patched into cart via uv run scripts/generate_cart.py
+- [x] #1 Ground tile visually reads as brown brick ground
+- [x] #2 Brick block has visible mortar lines
+- [x] #3 ? block has yellow body with visible ? symbol and animation frame
+- [x] #4 Pipe tiles assemble into recognizable green pipes (2 wide, variable height)
+- [x] #5 Flagpole and castle tiles assemble into recognizable end-of-level structures
+- [x] #6 All sprites defined in generate_cart.py and patched into cart via uv run scripts/generate_cart.py
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 Cart loads in PICO-8 without errors
+- [x] #1 Cart loads in PICO-8 without errors
 - [ ] #2 Play-test affected functionality
 - [ ] #3 Copy cart to iCloud: cp mario.p8 ~/iCloud/pico-8/carts/marioish/mario.p8
-- [ ] #4 Token count verified under 8192 limit
+- [x] #4 Token count verified under 8192 limit
 <!-- DOD:END -->

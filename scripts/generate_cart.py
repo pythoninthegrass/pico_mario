@@ -208,16 +208,16 @@ SPRITES: dict[int, list[str]] = {
     # --------------------------------------------------------
     # Row 1: Terrain tiles (IDs 16-21)
     # --------------------------------------------------------
-    # 16: ground (green grass top, brown earth below)
+    # 16: ground (orange SMB overworld brick)
     16: [
-        "bbbbbbbb",
-        "3b3b3b3b",
+        "99999999",
+        "99494994",
+        "99999999",
         "44444444",
-        "44544454",
+        "99999999",
+        "49944994",
+        "99999999",
         "44444444",
-        "45444544",
-        "44444444",
-        "44544454",
     ],
     # 17: brick block (breakable, warm brown with mortar)
     17: [
@@ -230,85 +230,85 @@ SPRITES: dict[int, list[str]] = {
         "99499949",
         "99499949",
     ],
-    # 18: question block frame 1 (yellow with ? mark)
+    # 18: question block frame 1 (bright yellow with ? glyph)
     18: [
         "aaaaaaaa",
-        "a9a99a9a",
-        "a99449aa",
-        "aaaa99aa",
-        "aaa99aaa",
+        "a9aaaa9a",
+        "aa4444aa",
+        "a44aa44a",
+        "aaaa44aa",
+        "aaa44aaa",
         "aaaaaaaa",
-        "aaa99aaa",
-        "aaaaaaaa",
+        "aaa44aaa",
     ],
-    # 19: question block frame 2 (slightly dimmer)
+    # 19: question block frame 2 (dimmer, more shading)
     19: [
+        "a9aaaa9a",
+        "a9aaaa9a",
+        "aa4444aa",
+        "a44aa44a",
+        "aaaa44aa",
+        "aaa44aaa",
         "aaaaaaaa",
-        "a9a99a9a",
-        "a99449aa",
-        "aaaa99aa",
-        "aaa99aaa",
-        "aa9aa9aa",
-        "aaa99aaa",
-        "aaaaaaaa",
+        "aaa44aaa",
     ],
-    # 20: empty/hit block (dark, already used)
+    # 20: empty/hit block (dim orange frame, spent ? block look)
     20: [
         "44444444",
-        "45454545",
+        "49999994",
+        "49999994",
+        "49999994",
+        "49999994",
+        "49999994",
+        "49999994",
         "44444444",
-        "54545454",
-        "44444444",
-        "45454545",
-        "44444444",
-        "54545454",
     ],
-    # 21: hard block / stone (unbreakable, warm tone)
+    # 21: hard block / stone (grey, unbreakable)
     21: [
-        "99499949",
-        "99499949",
-        "44444444",
-        "49949994",
-        "49949994",
-        "44444444",
-        "99499949",
-        "99499949",
+        "66666666",
+        "65555556",
+        "65666566",
+        "65666566",
+        "65666566",
+        "65555556",
+        "65565656",
+        "55555555",
     ],
     # --------------------------------------------------------
     # Row 2: Pipes (IDs 32-35)
     # --------------------------------------------------------
-    # 32: pipe top-left
+    # 32: pipe top-left (lip cap + highlight stripe)
     32: [
-        "3bbbbbbb",
-        "3bbbbbbb",
+        "33333333",
+        "3b7bbbb3",
+        "3bbbbbb3",
+        "33333333",
         "33bbbbbb",
-        "33bbbbbb",
-        "33bbbbbb",
-        "33bbbbbb",
+        "337bbbbb",
         "33bbbbbb",
         "33bbbbbb",
     ],
-    # 33: pipe top-right
+    # 33: pipe top-right (lip cap + highlight)
     33: [
-        "bbbbbbb3",
-        "bbbbbbb3",
-        "bbbbbb33",
-        "bbbbbb33",
+        "33333333",
+        "3bbbbbb3",
+        "3bbbbbb3",
+        "33333333",
         "bbbbbb33",
         "bbbbbb33",
         "bbbbbb33",
         "bbbbbb33",
     ],
-    # 34: pipe body-left
+    # 34: pipe body-left (with highlight stripe)
     34: [
-        "33bbbbbb",
-        "33bbbbbb",
-        "33bbbbbb",
-        "33bbbbbb",
-        "33bbbbbb",
-        "33bbbbbb",
-        "33bbbbbb",
-        "33bbbbbb",
+        "337bbbbb",
+        "337bbbbb",
+        "337bbbbb",
+        "337bbbbb",
+        "337bbbbb",
+        "337bbbbb",
+        "337bbbbb",
+        "337bbbbb",
     ],
     # 35: pipe body-right
     35: [
@@ -484,38 +484,38 @@ SPRITES: dict[int, list[str]] = {
         "...66...",
         "...66...",
     ],
-    # 83: castle block (warm brown brick)
+    # 83: castle block (dark red-brown, distinct from brick)
     83: [
-        "99499949",
-        "99499949",
+        "88488848",
+        "88488848",
         "44444444",
-        "49949994",
-        "49949994",
+        "48848884",
+        "48848884",
         "44444444",
-        "99499949",
-        "99499949",
+        "88488848",
+        "88488848",
     ],
-    # 84: castle top / battlement (crenellation)
+    # 84: castle top / battlement (crenellation with sky gaps)
     84: [
-        "94.94.94",
-        "94.94.94",
-        "99499949",
-        "99499949",
+        "44.44.44",
+        "44.44.44",
         "44444444",
-        "49949994",
-        "49949994",
+        "88488848",
+        "44444444",
+        "48848884",
+        "48848884",
         "44444444",
     ],
-    # 85: castle door (dark arch)
+    # 85: castle door (arched black opening)
     85: [
-        "99499949",
-        "99.00.99",
-        "9.0000.9",
-        "9.0000.9",
-        "9.0000.9",
-        "9.0000.9",
-        "9.0000.9",
-        "9.0000.9",
+        "44444444",
+        "45500554",
+        "45000054",
+        "45000054",
+        "45000054",
+        "45000054",
+        "45000054",
+        "45000054",
     ],
     # --------------------------------------------------------
     # Row 6: Decorations (IDs 96-104)
