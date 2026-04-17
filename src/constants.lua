@@ -14,7 +14,7 @@ run_jump_str = -5.2
 coyote = 5 -- frames of jump grace after leaving edge
 
 -- map dimensions (in tiles)
-map_w = 64
+map_w = 128
 map_h = 16
 
 -- sprite flags

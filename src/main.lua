@@ -61,7 +61,7 @@ function _draw()
   -- hud (screen-fixed)
   camera(0, 0)
   -- coin icon + count
-  spr(7, 2, 2)
+  spr(spr_coin1, 2, 2)
   print(coins, 12, 4, 7)
 
   if state == st_dead and death_t > 20 then
