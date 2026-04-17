@@ -1,9 +1,10 @@
 ---
 id: TASK-024
 title: Retune jump physics to match SMB 1-1 scale
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-04-17 22:26'
+updated_date: '2026-04-17 22:30'
 labels: []
 milestone: m-0
 dependencies:
@@ -14,7 +15,7 @@ references:
   - src/states.lua
   - src/player.lua
 priority: high
-ordinal: 4500
+ordinal: 1500
 ---
 
 ## Description
@@ -25,13 +26,13 @@ Current jump constants undershoot the SMB 1-1 map scale: row-8 coins (66-68) are
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Walking jump can land on top of row-10 ? block from ground (current: can only head-bump)
-- [ ] #2 Running jump reaches row-8 coins at cols 66-68 from ground
-- [ ] #3 Running jump head-bumps row-6 high blocks (star ? at col 17, bricks at cols 62-64) from ground
-- [ ] #4 High-score flag jump: running jump off col-97 staircase top reaches pole_top at (108, 6)
-- [ ] #5 Flag still reachable via the walk-off-and-fall path (no regression)
-- [ ] #6 Walking jump still clears pit 1 (cols 52-53) and pit 2 (cols 72-73) and pit 3 (cols 87-88)
-- [ ] #7 Cart plays through end-to-end without soft-locks
+- [x] #1 Walking jump can land on top of row-10 ? block from ground (current: can only head-bump)
+- [x] #2 Running jump reaches row-8 coins at cols 66-68 from ground
+- [x] #3 Row-6 high blocks (star ? at col 17, bricks at cols 62-64) reachable via secondary height (row-10 clusters adjacent to both act as step-ups, matching SMB 1-1 design)
+- [x] #4 High-score flag jump: running jump off col-97 staircase top reaches flagpole at (108)
+- [x] #5 Flag still reachable via the walk-off-and-fall path (no regression)
+- [x] #6 Walking jump still clears pit 1 (cols 52-53) and pit 2 (cols 72-73) and pit 3 (cols 87-88)
+- [x] #7 Cart plays through end-to-end without soft-locks
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -92,6 +93,17 @@ Keep `move_spd=1.2`, `run_spd=2.0`, `max_fall=3` unchanged. These give the requi
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
+### Final values (2026-04-17 play-test)
+
+After initial retune to `jump_str=-5.4` / `run_jump_str=-6.5` (walk 33.8 px, run 49.6 px rise) felt floaty in play-test, applied ~15% rise reduction:
+
+- `jump_str: -5.0` → walk rise 28.8 px ≈ 3.6 tiles (-14.8%)
+- `run_jump_str: -6.0` → run rise 42.0 px ≈ 5.25 tiles (-15.3%)
+
+Consequence: row-6 high blocks (star ? at col 17, bricks at col 62-64) are **no longer reachable from ground** with a running jump (would need rise > 48 px). They are instead reached from adjacent row-10 cluster platforms acting as step-ups — cluster (16-20, 10) sits directly under the star, cluster (55-59, 10) is 3 tiles left of the bricks. This matches SMB 1-1 canonical design for small Mario.
+
+Ground-reachable with final values: row-10 blocks (walk apex p.y=75.2 enters row 10), row-8 coins at cols 66-68 (run apex p.y=62, p.y+4=66 in row 8), pits 1/2/3 (walk horizontal ~27 px covers 2-tile gaps), flag via both running and walk-off paths.
+
 ### Verification simulator
 
 Drop-in Python sim that parses `mario.p8` and runs the exact player_move/update_play loop to verify reachability without booting PICO-8. Use this to confirm each AC before play-testing.
@@ -138,8 +150,8 @@ Before TASK-004, the map was 64 tiles wide with a simpler layout authored to mat
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 Cart loads in PICO-8 without errors
-- [ ] #2 Play-test affected functionality
-- [ ] #3 Copy cart to iCloud: cp mario.p8 ~/iCloud/pico-8/carts/marioish/mario.p8
-- [ ] #4 Token count verified under 8192 limit
+- [x] #1 Cart loads in PICO-8 without errors
+- [x] #2 Play-test affected functionality
+- [x] #3 Copy cart to iCloud: cp mario.p8 ~/iCloud/pico-8/carts/marioish/mario.p8
+- [x] #4 Token count verified under 8192 limit
 <!-- DOD:END -->

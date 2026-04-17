@@ -10,10 +10,10 @@ __lua__
 -- physics
 grav = 0.4
 max_fall = 3
-jump_str = -4.16
+jump_str = -5.0
 move_spd = 1.2
 run_spd = 2.0
-run_jump_str = -5.2
+run_jump_str = -6.0
 coyote = 5 -- frames of jump grace after leaving edge
 
 -- map dimensions (in tiles)
