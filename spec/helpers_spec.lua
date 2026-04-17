@@ -100,5 +100,77 @@ describe('game helpers', function()
       assert.is_true(cam_x >= 0)
       assert.is_true(cam_y >= 0)
     end)
+
+    it('does not scroll left when player is left of camera', function()
+      _G.cam_x = 200
+      _G.cam_y = 0
+      local p = make_player(50, 64)
+      update_cam(p)
+      assert.are.equal(200, cam_x)
+    end)
+
+    it('never decreases cam_x across updates', function()
+      _G.cam_x = 0
+      _G.cam_y = 0
+      local p = make_player(300, 64)
+      update_cam(p)
+      local cx = cam_x
+      assert.is_true(cx > 0)
+      p.x = 80
+      update_cam(p)
+      assert.are.equal(cx, cam_x)
+    end)
+
+    it('scrolls right when player advances past dead zone', function()
+      _G.cam_x = 0
+      _G.cam_y = 0
+      local p = make_player(300, 64)
+      update_cam(p)
+      assert.is_true(cam_x > 0)
+    end)
+
+    it('keeps cam_x at 0 while player is inside the left dead zone', function()
+      _G.cam_x = 0
+      _G.cam_y = 0
+      local p = make_player(30, 64)
+      update_cam(p)
+      assert.are.equal(0, cam_x)
+    end)
+
+    it('clamps cam_x to the right map edge', function()
+      _G.cam_x = 0
+      _G.cam_y = 0
+      local p = make_player(map_w * 8, 64)
+      update_cam(p)
+      assert.are.equal(map_w * 8 - 128, cam_x)
+    end)
+
+    it('keeps cam_y fixed at 0', function()
+      _G.cam_x = 0
+      _G.cam_y = 0
+      local p = make_player(100, 200)
+      update_cam(p)
+      assert.are.equal(0, cam_y)
+    end)
+  end)
+
+  describe('player_move left-edge lock', function()
+    it('prevents player from walking past cam_x', function()
+      _G.cam_x = 100
+      _G.cam_y = 0
+      local p = make_player(110, 64)
+      p.dx = -20
+      player_move(p)
+      assert.is_true(p.x >= cam_x)
+    end)
+
+    it('still clamps to map left when cam_x is 0', function()
+      _G.cam_x = 0
+      _G.cam_y = 0
+      local p = make_player(2, 64)
+      p.dx = -4
+      player_move(p)
+      assert.is_true(p.x >= 0)
+    end)
   end)
 end)

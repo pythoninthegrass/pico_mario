@@ -38,8 +38,11 @@ function player_move(p)
     end
   end
 
-  -- clamp to left map edge
-  if p.x < 0 then p.x = 0 end
+  -- lock to left edge of visible screen
+  if p.x < cam_x then
+    p.x = cam_x
+    if p.dx < 0 then p.dx = 0 end
+  end
 
   -- vertical movement + resolve
   p.y += p.dy
