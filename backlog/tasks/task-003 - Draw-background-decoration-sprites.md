@@ -1,10 +1,10 @@
 ---
 id: TASK-003
 title: Draw background decoration sprites
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-04-15 20:47'
-updated_date: '2026-04-15 20:47'
+updated_date: '2026-04-17 19:15'
 labels: []
 milestone: m-0
 dependencies:
@@ -12,7 +12,7 @@ dependencies:
 references:
   - maps/smb_1-1.png
 priority: low
-ordinal: 3000
+ordinal: 4500
 ---
 
 ## Description
