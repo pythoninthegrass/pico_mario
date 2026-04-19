@@ -4,13 +4,13 @@ title: Implement acceleration-based movement physics
 status: In Progress
 assignee: []
 created_date: '2026-04-15 20:49'
-updated_date: '2026-04-17 19:15'
+updated_date: '2026-04-17 23:23'
 labels: []
 milestone: m-3
 dependencies:
   - TASK-004
 priority: medium
-ordinal: 3000
+ordinal: 8000
 ---
 
 ## Description

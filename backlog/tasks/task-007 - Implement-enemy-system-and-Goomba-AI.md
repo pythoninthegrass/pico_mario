@@ -2,14 +2,17 @@
 id: TASK-007
 title: Implement enemy system and Goomba AI
 status: In Progress
-assignee: []
+assignee:
+  - claude
 created_date: '2026-04-15 20:47'
-updated_date: '2026-04-16 22:29'
+updated_date: '2026-04-19 08:17'
 labels: []
 milestone: m-1
 dependencies:
   - TASK-004
   - TASK-006
+references:
+  - docs/smb_1-1_enemies.md
 priority: high
 ordinal: 7000
 ---
@@ -36,6 +39,12 @@ SMB 1-1 has ~16 goombas and 1 koopa. Start with goombas only; koopa is a separat
 - [ ] #6 Enemy spawn positions defined in a data table (not hardcoded in map tiles)
 - [ ] #7 Maximum ~6 active enemies on screen at once to stay within CPU budget
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+New file src/enemies.lua between particles.lua and main.lua. Contains: enemy_spawns table (17 entries from docs/smb_1-1_enemies.md, sorted by X), enemies active list, next_spawn cursor. Functions: make_enemy(), init_enemies(), spawn_enemies() (trigger at cam_x+144), update_enemies() (move 0.5px/frame left, gravity, wall reversal, pit removal, animation), draw_enemies(). Enemy object: {x,y,dx,dy,w=6,h=8,etype,frame,frame_t,spr1,spr2}. New constants: enemy_spd=0.5, max_enemies=6. Modify main.lua (_init, update_play, _draw), spec/helper.lua LUA_SOURCES, generate_cart.py LUA_SOURCES. TDD: spec/enemies_spec.lua covering all 7 ACs.
+<!-- SECTION:PLAN:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->

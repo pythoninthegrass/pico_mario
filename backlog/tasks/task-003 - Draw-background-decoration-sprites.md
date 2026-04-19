@@ -4,7 +4,7 @@ title: Draw background decoration sprites
 status: In Progress
 assignee: []
 created_date: '2026-04-15 20:47'
-updated_date: '2026-04-17 19:15'
+updated_date: '2026-04-17 23:24'
 labels: []
 milestone: m-0
 dependencies:
@@ -12,7 +12,7 @@ dependencies:
 references:
   - maps/smb_1-1.png
 priority: low
-ordinal: 4500
+ordinal: 9000
 ---
 
 ## Description
