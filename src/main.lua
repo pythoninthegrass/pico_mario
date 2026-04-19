@@ -27,6 +27,7 @@ function _init()
   cam_x = player.x - 60
   cam_y = 0
   particles = {}
+  init_enemies()
 end
 
 function _update60()
@@ -56,6 +57,7 @@ function _draw()
     spr(sn, player.x, player.y, 1, 1, flip_x)
   end
 
+  draw_enemies()
   draw_particles()
 
   -- hud (screen-fixed)

@@ -13,6 +13,10 @@ run_spd = 2.0
 run_jump_str = -6.0
 coyote = 5 -- frames of jump grace after leaving edge
 
+-- enemies
+enemy_spd = 0.5
+max_enemies = 6
+
 -- map dimensions (in tiles)
 map_w = 128
 map_h = 16

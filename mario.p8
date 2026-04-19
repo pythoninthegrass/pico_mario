@@ -16,6 +16,10 @@ run_spd = 2.0
 run_jump_str = -6.0
 coyote = 5 -- frames of jump grace after leaving edge
 
+-- enemies
+enemy_spd = 0.5
+max_enemies = 6
+
 -- map dimensions (in tiles)
 map_w = 128
 map_h = 16
@@ -283,6 +287,121 @@ function draw_particles()
 end
 
 ----------------------------------------
+-- enemies
+----------------------------------------
+-- spawn positions sourced from
+-- docs/smb_1-1_enemies.md (16 goombas;
+-- koopa #5 deferred to a later task).
+-- y = 13 * 8 = 104 (one tile above the
+-- ground row at y = 14).
+enemy_spawns = {
+  { x = 16 * 8,  y = 13 * 8, type = 'goomba' },
+  { x = 31 * 8,  y = 13 * 8, type = 'goomba' },
+  { x = 40 * 8,  y = 13 * 8, type = 'goomba' },
+  { x = 41 * 8,  y = 13 * 8, type = 'goomba' },
+  { x = 59 * 8,  y = 13 * 8, type = 'goomba' },
+  { x = 60 * 8,  y = 13 * 8, type = 'goomba' },
+  { x = 63 * 8,  y = 13 * 8, type = 'goomba' },
+  { x = 64 * 8,  y = 13 * 8, type = 'goomba' },
+  { x = 71 * 8,  y = 13 * 8, type = 'goomba' },
+  { x = 72 * 8,  y = 13 * 8, type = 'goomba' },
+  { x = 75 * 8,  y = 13 * 8, type = 'goomba' },
+  { x = 76 * 8,  y = 13 * 8, type = 'goomba' },
+  { x = 100 * 8, y = 13 * 8, type = 'goomba' },
+  { x = 101 * 8, y = 13 * 8, type = 'goomba' },
+  { x = 103 * 8, y = 13 * 8, type = 'goomba' },
+  { x = 104 * 8, y = 13 * 8, type = 'goomba' },
+}
+
+enemies = {}
+next_spawn = 1
+
+function make_enemy(x, y, etype)
+  local e = {
+    x = x, y = y,
+    dx = -enemy_spd, dy = 0,
+    w = 6, h = 8,
+    etype = etype,
+    frame = 0, frame_t = 0,
+    spr1 = spr_goomba1,
+    spr2 = spr_goomba2,
+  }
+  return e
+end
+
+function init_enemies()
+  enemies = {}
+  next_spawn = 1
+end
+
+-- spawn queued enemies whose x has come
+-- within the off-screen-right margin
+function spawn_enemies()
+  while next_spawn <= #enemy_spawns
+      and #enemies < max_enemies
+      and enemy_spawns[next_spawn].x < cam_x + 144 do
+    local s = enemy_spawns[next_spawn]
+    add(enemies, make_enemy(s.x, s.y, s.type))
+    next_spawn += 1
+  end
+end
+
+function update_enemies()
+  for i = #enemies, 1, -1 do
+    local e = enemies[i]
+
+    -- horizontal: walk + reverse on wall
+    e.x += e.dx
+    if e.dx < 0 then
+      if is_solid(e.x, e.y + 1)
+          or is_solid(e.x, e.y + e.h - 1) then
+        e.x = flr(e.x / 8) * 8 + 8
+        e.dx = -e.dx
+      end
+    elseif e.dx > 0 then
+      if is_solid(e.x + e.w - 1, e.y + 1)
+          or is_solid(e.x + e.w - 1, e.y + e.h - 1) then
+        e.x = flr((e.x + e.w - 1) / 8) * 8 - e.w
+        e.dx = -e.dx
+      end
+    end
+
+    -- gravity
+    e.dy += grav
+    if e.dy > max_fall then e.dy = max_fall end
+
+    -- vertical: fall + land
+    e.y += e.dy
+    if e.dy >= 0 then
+      if is_solid(e.x + 1, e.y + e.h)
+          or is_solid(e.x + e.w - 2, e.y + e.h) then
+        e.y = flr((e.y + e.h) / 8) * 8 - e.h
+        e.dy = 0
+      end
+    end
+
+    -- pit removal
+    if e.y > map_h * 8 + 16 then
+      del(enemies, e)
+    else
+      -- walk-cycle animation
+      e.frame_t += 1
+      if e.frame_t > 8 then
+        e.frame_t = 0
+        e.frame = (e.frame + 1) % 2
+      end
+    end
+  end
+end
+
+function draw_enemies()
+  for e in all(enemies) do
+    local sn = e.spr1
+    if e.frame == 1 then sn = e.spr2 end
+    spr(sn, e.x, e.y, 1, 1, e.dx > 0)
+  end
+end
+----------------------------------------
 -- game state machine
 ----------------------------------------
 function _init()
@@ -311,6 +430,7 @@ function _init()
   cam_x = player.x - 60
   cam_y = 0
   particles = {}
+  init_enemies()
 end
 
 function _update60()
@@ -340,6 +460,7 @@ function _draw()
     spr(sn, player.x, player.y, 1, 1, flip_x)
   end
 
+  draw_enemies()
   draw_particles()
 
   -- hud (screen-fixed)
@@ -446,6 +567,9 @@ function update_play()
   end
 
   update_cam(p)
+
+  spawn_enemies()
+  update_enemies()
 end
 
 function get_player_spr(p)

@@ -82,6 +82,9 @@ function update_play()
   end
 
   update_cam(p)
+
+  spawn_enemies()
+  update_enemies()
 end
 
 function get_player_spr(p)
