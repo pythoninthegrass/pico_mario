@@ -28,8 +28,7 @@ Files are concatenated in the order listed above to form the `__lua__` section. 
 - `src/*.lua` — game source code (edit here)
 - `mario.p8` — assembled PICO-8 cartridge (build output, checked in)
 - `scripts/generate_cart.py` — assembles `src/*.lua` into `__lua__`, patches `__gfx__` and `__gff__` from sprite definitions
-- `docs/pico-8_cheatsheet.png` — PICO-8 API quick reference (image)
-- `docs/llms.txt` — extracted PICO-8 manual snippets for LLM context
+- `docs/pico-8_cheatsheet.md` — PICO-8 API quick reference
 
 ## Runtimes and tools
 
