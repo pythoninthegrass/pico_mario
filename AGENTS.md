@@ -90,6 +90,27 @@ cp mario.p8 ~/iCloud/pico-8/carts/marioish/mario.p8
 pico8 -run mario.p8
 ```
 
+## Reference asset inspection
+
+Mario/level references live in `maps/` (`smb_1-1.png` static level, `smb_1-1.mp4` gameplay video). These files are large — read selectively, not whole:
+
+```bash
+# Probe video metadata first (duration, resolution, fps)
+ffprobe -i maps/smb_1-1.mp4 2>&1 | grep -E "Duration|Stream"
+
+# Extract a single frame at a given timestamp
+ffmpeg -y -ss 00:00:10 -i maps/smb_1-1.mp4 -frames:v 1 /tmp/frame.png
+
+# Crop + upscale a region (e.g. Mario) so 8x8 pixels are legible
+# -crop WxH+X+Y picks a region; -scale 800% upsamples with nearest-neighbour by default
+magick /tmp/frame.png -crop 60x80+370+330 +repage -scale 800% /tmp/mario_zoom.png
+
+# Crop a region from the static map (3584x480)
+magick maps/smb_1-1.png -crop 256x240+0+0 +repage /tmp/smb_start.png
+```
+
+Use `magick` (IMv7), not the deprecated `convert`. Always write to `/tmp/` to keep the repo clean.
+
 ## macOS gotchas
 
 - **Screenshot filenames contain U+202F**: macOS uses a narrow no-break space before AM/PM in screenshot names (e.g. `Screenshot 2026-04-15 at 3.03.41\u202fPM.png`). This character is invisible and breaks naive path handling. When the user pastes a screenshot path, copy it to `/tmp` first using a printf escape: `cp /path/to/Screenshot\ …$(printf '\xe2\x80\xaf')PM.png /tmp/screenshot.png`

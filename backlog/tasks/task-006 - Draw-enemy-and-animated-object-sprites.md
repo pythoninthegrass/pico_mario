@@ -1,10 +1,10 @@
 ---
 id: TASK-006
 title: Draw enemy and animated object sprites
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-04-15 20:47'
-updated_date: '2026-04-16 22:29'
+updated_date: '2026-04-19 19:41'
 labels: []
 milestone: m-1
 dependencies:
@@ -25,12 +25,18 @@ Mario sprites replace the current placeholders (sprites 1-3). New death sprite n
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Goomba has 2 walk animation frames and a squished frame
-- [ ] #2 Koopa has 2 walk animation frames and a shell sprite
-- [ ] #3 Mario has idle, run (2 frames), jump, and death sprites
-- [ ] #4 Coin has 2 animation frames
-- [ ] #5 All sprites defined in generate_cart.py and patched into cart
+- [x] #1 Goomba has 2 walk animation frames and a squished frame
+- [x] #2 Koopa has 2 walk animation frames and a shell sprite
+- [x] #3 Mario has idle, run (2 frames), jump, and death sprites
+- [x] #4 Coin has 2 animation frames
+- [x] #5 All sprites defined in generate_cart.py and patched into cart
 <!-- AC:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+All animated-object sprites defined in generate_cart.py and patched into mario.p8: Mario 1-5 (idle, run1, run2, jump, death) mirrored to face right by default (main.lua flips for facing==-1); Goomba 48-50 (walk1, walk2, squished); Koopa 51-53 (walk1, walk2, shell); Coin 64-65. Cart rebuilt at 38373 bytes with 56 non-empty gfx rows.
+<!-- SECTION:FINAL_SUMMARY:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
