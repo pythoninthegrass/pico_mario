@@ -2,6 +2,7 @@
 .task/
 CLAUDE.md
 maps/*
+sprites/*
 
 # E2E test artifacts (generated carts, HTML exports)
 spec/e2e_*.p8
