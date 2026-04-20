@@ -4,20 +4,33 @@
 function update_play()
   local p = player
 
+  -- decay power-state timers each frame
+  if p.invuln_t > 0 then
+    p.invuln_t -= 1
+  end
+  if p.transform_t > 0 then
+    p.transform_t -= 1
+  end
+
   -- run state (x button)
   p.running = btn(5)
   local spd = move_spd
   if p.running then spd = run_spd end
 
-  -- horizontal input
+  -- horizontal input (suspended during
+  -- the grow/shrink animation so the
+  -- player briefly pauses as they
+  -- transform)
   p.dx = 0
-  if btn(0) then
-    p.dx = -spd
-    p.facing = -1
-  end
-  if btn(1) then
-    p.dx = spd
-    p.facing = 1
+  if p.transform_t == 0 then
+    if btn(0) then
+      p.dx = -spd
+      p.facing = -1
+    end
+    if btn(1) then
+      p.dx = spd
+      p.facing = 1
+    end
   end
 
   -- coyote time: track grace frames
@@ -31,7 +44,7 @@ function update_play()
   -- jump: o button only (btn 4)
   -- stronger jump when running
   local can_jump = p.grounded or p.coyote_t > 0
-  if can_jump and btnp(4) then
+  if can_jump and btnp(4) and p.transform_t == 0 then
     if p.running then
       p.dy = run_jump_str
     else
@@ -67,8 +80,14 @@ function update_play()
     p.frame_t = 0
   end
 
-  -- tile interactions
+  -- tile interactions: hazard contact
+  -- routes through damage_player so big
+  -- mario shrinks.  pit falls stay fatal
+  -- regardless of power state.
   local result = player_check_tiles(p)
+  if result == "hit" then
+    result = damage_player(p)
+  end
   if result == "dead" then
     state = st_dead
     death_t = 0
@@ -88,12 +107,13 @@ function update_play()
 end
 
 function get_player_spr(p)
-  if not p.grounded then
-    return 3
+  if p.power >= 1 then
+    if not p.grounded then return spr_big_jump end
+    if p.dx != 0 then return spr_big_run1 + p.frame % 2 end
+    return spr_big_idle
   end
-  if p.dx != 0 then
-    return 1 + p.frame % 2
-  end
+  if not p.grounded then return 3 end
+  if p.dx != 0 then return 1 + p.frame % 2 end
   return 1
 end
 

@@ -96,12 +96,16 @@ function update_items()
     if it.y > map_h * 8 + 16 then
       del(items, it)
     elseif it.phase == "walk" and item_overlaps_player(it) then
-      -- placeholder until TASK-013: power-up
-      -- grants score in lieu of state change.
-      -- TASK-013 will call grow_player(p).
       del(items, it)
-      coins += 1
-      sfx(4)
+      if it.kind == "mushroom" then
+        grow_player(player)
+      else
+        -- star + fireflower remain placeholder
+        -- (granted as score) until their own
+        -- power states are implemented
+        coins += 1
+        sfx(4)
+      end
     end
   end
 end

@@ -20,6 +20,10 @@ coyote = 5 -- frames of jump grace after leaving edge
 enemy_spd = 0.5
 max_enemies = 6
 
+-- power state timers (frames)
+invuln_len = 120      -- ~2s post-shrink invulnerability
+transform_len = 30    -- ~0.5s grow/shrink animation
+
 -- map dimensions (in tiles)
 map_w = 128
 map_h = 16
@@ -85,6 +89,11 @@ spr_bush_r = 101
 spr_hill = 102
 spr_hill_top = 103
 spr_hill_sm = 104
+-- row 7: big mario (top halves; bottoms at id + 16)
+spr_big_idle = 112
+spr_big_run1 = 113
+spr_big_run2 = 114
+spr_big_jump = 115
 
 -- game states
 st_play = 0
@@ -170,6 +179,11 @@ function bump_block(mx, my)
           mc.timer = 240
         end
       end
+    elseif player and player.power > 0 then
+      -- big mario shatters the brick
+      mset(mx, my, 0)
+      spawn_particles(mx * 8 + 4, my * 8 + 4, 4, 8)
+      sfx(1)
     else
       spawn_bump(mx, my, t)
     end
@@ -191,9 +205,49 @@ function make_player(sx, sy)
     spawn_x = sx,
     spawn_y = sy,
     coyote_t = 0,
-    running = false
+    running = false,
+    power = 0,        -- 0=small, 1=big, 2=fire (reserved)
+    invuln_t = 0,     -- post-shrink invulnerability timer
+    transform_t = 0,  -- grow/shrink animation timer
   }
   return p
+end
+
+-- grow small -> big.  shifts y up 8 px
+-- so the feet stay planted on ground.
+function grow_player(p)
+  if p.power ~= 0 then return end
+  p.power = 1
+  p.y -= 8
+  p.h = 16
+  p.transform_t = transform_len
+  sfx(4)
+end
+
+-- shrink big -> small.  shifts y down
+-- 8 px so feet stay grounded, grants
+-- post-hit invulnerability.
+function shrink_player(p)
+  if p.power < 1 then return end
+  p.power = 0
+  p.y += 8
+  p.h = 8
+  p.invuln_t = invuln_len
+  p.transform_t = transform_len
+  sfx(5)
+end
+
+-- route damage through the power state.
+-- returns "dead" when small mario is
+-- hit, "ok" when the hit was absorbed
+-- (shrink or invulnerability).
+function damage_player(p)
+  if p.invuln_t > 0 then return "ok" end
+  if p.power > 0 then
+    shrink_player(p)
+    return "ok"
+  end
+  return "dead"
 end
 
 -- move player with collision resolve
@@ -268,13 +322,19 @@ function player_move(p)
 end
 
 -- check hazard/goal/coin overlap
+-- returns:
+--   "hit"   hazard tile touched (damage routes
+--           through damage_player)
+--   "dead"  fell off bottom of map (always fatal)
+--   "clear" goal reached
+--   "ok"    nothing interesting
 function player_check_tiles(p)
   for ox = 1, p.w - 2, p.w - 3 do
     for oy = 0, p.h - 1, flr(p.h / 2) do
       local px = p.x + ox
       local py = p.y + oy
       if is_hazard(px, py) then
-        return "dead"
+        return "hit"
       end
       if is_goal(px, py) then
         return "clear"
@@ -285,7 +345,7 @@ function player_check_tiles(p)
       end
     end
   end
-  -- fell off bottom of map
+  -- fell off bottom of map (always fatal)
   if p.y > map_h * 8 + 16 then
     return "dead"
   end
@@ -625,12 +685,16 @@ function update_items()
     if it.y > map_h * 8 + 16 then
       del(items, it)
     elseif it.phase == "walk" and item_overlaps_player(it) then
-      -- placeholder until TASK-013: power-up
-      -- grants score in lieu of state change.
-      -- TASK-013 will call grow_player(p).
       del(items, it)
-      coins += 1
-      sfx(4)
+      if it.kind == "mushroom" then
+        grow_player(player)
+      else
+        -- star + fireflower remain placeholder
+        -- (granted as score) until their own
+        -- power states are implemented
+        coins += 1
+        sfx(4)
+      end
     end
   end
 end
@@ -847,9 +911,16 @@ function _draw()
   -- draw player
   if state == st_play
       or (state == st_dead and death_t < 10) then
-    local flip_x = (player.facing == -1)
-    local sn = get_player_spr(player)
-    spr(sn, player.x, player.y, 1, 1, flip_x)
+    -- flash every 4 frames while invuln
+    local blink = player.invuln_t > 0
+        and (player.invuln_t % 8) < 4
+    if not blink then
+      local flip_x = (player.facing == -1)
+      local sn = get_player_spr(player)
+      local th = 1
+      if player.power >= 1 then th = 2 end
+      spr(sn, player.x, player.y, 1, th, flip_x)
+    end
   end
 
   draw_enemies()
@@ -883,20 +954,33 @@ end
 function update_play()
   local p = player
 
+  -- decay power-state timers each frame
+  if p.invuln_t > 0 then
+    p.invuln_t -= 1
+  end
+  if p.transform_t > 0 then
+    p.transform_t -= 1
+  end
+
   -- run state (x button)
   p.running = btn(5)
   local spd = move_spd
   if p.running then spd = run_spd end
 
-  -- horizontal input
+  -- horizontal input (suspended during
+  -- the grow/shrink animation so the
+  -- player briefly pauses as they
+  -- transform)
   p.dx = 0
-  if btn(0) then
-    p.dx = -spd
-    p.facing = -1
-  end
-  if btn(1) then
-    p.dx = spd
-    p.facing = 1
+  if p.transform_t == 0 then
+    if btn(0) then
+      p.dx = -spd
+      p.facing = -1
+    end
+    if btn(1) then
+      p.dx = spd
+      p.facing = 1
+    end
   end
 
   -- coyote time: track grace frames
@@ -910,7 +994,7 @@ function update_play()
   -- jump: o button only (btn 4)
   -- stronger jump when running
   local can_jump = p.grounded or p.coyote_t > 0
-  if can_jump and btnp(4) then
+  if can_jump and btnp(4) and p.transform_t == 0 then
     if p.running then
       p.dy = run_jump_str
     else
@@ -946,8 +1030,14 @@ function update_play()
     p.frame_t = 0
   end
 
-  -- tile interactions
+  -- tile interactions: hazard contact
+  -- routes through damage_player so big
+  -- mario shrinks.  pit falls stay fatal
+  -- regardless of power state.
   local result = player_check_tiles(p)
+  if result == "hit" then
+    result = damage_player(p)
+  end
   if result == "dead" then
     state = st_dead
     death_t = 0
@@ -967,12 +1057,13 @@ function update_play()
 end
 
 function get_player_spr(p)
-  if not p.grounded then
-    return 3
+  if p.power >= 1 then
+    if not p.grounded then return spr_big_jump end
+    if p.dx != 0 then return spr_big_run1 + p.frame % 2 end
+    return spr_big_idle
   end
-  if p.dx != 0 then
-    return 1 + p.frame % 2
-  end
+  if not p.grounded then return 3 end
+  if p.dx != 0 then return 1 + p.frame % 2 end
   return 1
 end
 
@@ -1052,22 +1143,22 @@ __gfx__
 77777777777777777777777700bbbbb0bbbbbbbb0bbbbb00b3b3b3b3bbbbbbbb000bb00000000000000000000000000000000000000000000000000000000000
 7777777777777777777777770bbbbbbbbbbbbbbbbbbbbbb0bbbbbbbbb3b3b3b300bbbb0000000000000000000000000000000000000000000000000000000000
 000000000000000000000000bbbbbbbbbbbbbbbbbbbbbbbb3b3b3b3bbbbbbbbb0bbbbbb000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00888800008888000088880000888800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+08888880088888800888888008888080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+004ffff0004ffff0004ffff0004fff08000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+4fffff404fffff404fffff404fffff40000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+4f8ff8f04f8ff8f04f8ff8f04f8ff8f0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0ffffff00ffffff00ffffff00ffffff0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0f4444f00f4444f00f4444f00f4444f0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00888800008888000088880000888800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+08811880088118800881188008811880000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+88111188881111888811118888111188000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+18111181181111811811118118111181000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+11818181118181811181818111818181000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+01111110011111100111111011111110000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+01100110011001100110011011011010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+04400440444004400440044444011044000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+44400444004404400440440044000044000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000

@@ -7,6 +7,9 @@ describe('block bumps', function()
     _G.pop_coins = {}
     _G.hidden_blocks = {}
     _G.multi_coin_bricks = {}
+    _G.particles = {}
+    -- default player (small) for bump path that reads player.power
+    _G.player = make_player(-1000, -1000)
     -- wire flag masks matching generate_cart.py
     _pico8.set_flags(spr_qblock1, 0x21)   -- solid + question
     _pico8.set_flags(spr_brick, 0x11)     -- solid + breakable
@@ -68,6 +71,38 @@ describe('block bumps', function()
       _pico8.set_tile(3, 5, spr_brick)
       bump_block(3, 5)
       assert.are.equal(1, #bumped_blocks)
+    end)
+  end)
+
+  describe('bump_block on brick as big mario', function()
+    it('destroys the tile (mset to 0)', function()
+      player.power = 1
+      _pico8.set_tile(3, 5, spr_brick)
+      bump_block(3, 5)
+      assert.are.equal(0, mget(3, 5))
+    end)
+
+    it('spawns debris particles', function()
+      player.power = 1
+      _pico8.set_tile(3, 5, spr_brick)
+      bump_block(3, 5)
+      assert.is_true(#particles > 0)
+    end)
+
+    it('does not spawn a bump animation (tile is gone)', function()
+      player.power = 1
+      _pico8.set_tile(3, 5, spr_brick)
+      bump_block(3, 5)
+      assert.are.equal(0, #bumped_blocks)
+    end)
+
+    it('multi-coin brick still dispenses a coin (break is deferred)', function()
+      player.power = 1
+      _pico8.set_tile(3, 5, spr_brick)
+      register_multi_coin(3, 5)
+      bump_block(3, 5)
+      assert.are.equal(1, coins)
+      assert.are.equal(spr_brick, mget(3, 5))
     end)
   end)
 

@@ -13,9 +13,49 @@ function make_player(sx, sy)
     spawn_x = sx,
     spawn_y = sy,
     coyote_t = 0,
-    running = false
+    running = false,
+    power = 0,        -- 0=small, 1=big, 2=fire (reserved)
+    invuln_t = 0,     -- post-shrink invulnerability timer
+    transform_t = 0,  -- grow/shrink animation timer
   }
   return p
+end
+
+-- grow small -> big.  shifts y up 8 px
+-- so the feet stay planted on ground.
+function grow_player(p)
+  if p.power ~= 0 then return end
+  p.power = 1
+  p.y -= 8
+  p.h = 16
+  p.transform_t = transform_len
+  sfx(4)
+end
+
+-- shrink big -> small.  shifts y down
+-- 8 px so feet stay grounded, grants
+-- post-hit invulnerability.
+function shrink_player(p)
+  if p.power < 1 then return end
+  p.power = 0
+  p.y += 8
+  p.h = 8
+  p.invuln_t = invuln_len
+  p.transform_t = transform_len
+  sfx(5)
+end
+
+-- route damage through the power state.
+-- returns "dead" when small mario is
+-- hit, "ok" when the hit was absorbed
+-- (shrink or invulnerability).
+function damage_player(p)
+  if p.invuln_t > 0 then return "ok" end
+  if p.power > 0 then
+    shrink_player(p)
+    return "ok"
+  end
+  return "dead"
 end
 
 -- move player with collision resolve
@@ -90,13 +130,19 @@ function player_move(p)
 end
 
 -- check hazard/goal/coin overlap
+-- returns:
+--   "hit"   hazard tile touched (damage routes
+--           through damage_player)
+--   "dead"  fell off bottom of map (always fatal)
+--   "clear" goal reached
+--   "ok"    nothing interesting
 function player_check_tiles(p)
   for ox = 1, p.w - 2, p.w - 3 do
     for oy = 0, p.h - 1, flr(p.h / 2) do
       local px = p.x + ox
       local py = p.y + oy
       if is_hazard(px, py) then
-        return "dead"
+        return "hit"
       end
       if is_goal(px, py) then
         return "clear"
@@ -107,7 +153,7 @@ function player_check_tiles(p)
       end
     end
   end
-  -- fell off bottom of map
+  -- fell off bottom of map (always fatal)
   if p.y > map_h * 8 + 16 then
     return "dead"
   end

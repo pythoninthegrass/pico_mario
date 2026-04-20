@@ -623,7 +623,106 @@ SPRITES: dict[int, list[str]] = {
         "..bbbb..",
         ".bbbbbb.",
     ],
+    # --------------------------------------------------------
+    # Row 7: Big Mario top halves (IDs 112-115)
+    # Bottom halves live in row 8 (IDs 128-131) and are drawn
+    # together via spr(top, x, y, 1, 2).
+    # --------------------------------------------------------
+    # 112: big mario idle top (hat + face + shoulders)
+    112: [
+        "..8888..",
+        ".888888.",
+        "..4ffff.",
+        "4fffff4.",
+        "4f8ff8f.",
+        ".ffffff.",
+        ".f4444f.",
+        "..8888..",
+    ],
+    # 113: big mario run frame 1 top (same head, mirrors idle)
+    113: [
+        "..8888..",
+        ".888888.",
+        "..4ffff.",
+        "4fffff4.",
+        "4f8ff8f.",
+        ".ffffff.",
+        ".f4444f.",
+        "..8888..",
+    ],
+    # 114: big mario run frame 2 top
+    114: [
+        "..8888..",
+        ".888888.",
+        "..4ffff.",
+        "4fffff4.",
+        "4f8ff8f.",
+        ".ffffff.",
+        ".f4444f.",
+        "..8888..",
+    ],
+    # 115: big mario jump top (arm raised)
+    115: [
+        "..8888..",
+        ".8888.8.",
+        "..4fff.8",
+        "4fffff4.",
+        "4f8ff8f.",
+        ".ffffff.",
+        ".f4444f.",
+        "..8888..",
+    ],
 }
+
+# Add big mario bottom halves in row 8 (IDs 128-131) such
+# that each bottom sits directly under its paired top
+# (drawn together with spr(top, x, y, 1, 2)).
+SPRITES.update({
+    # 128: big mario idle bottom (torso + legs + shoes)
+    128: [
+        ".881188.",
+        "88111188",
+        "18111181",
+        "11818181",
+        ".111111.",
+        ".11..11.",
+        ".44..44.",
+        "444..444",
+    ],
+    # 129: big mario run frame 1 bottom (left leg forward)
+    129: [
+        ".881188.",
+        "88111188",
+        "18111181",
+        "11818181",
+        ".111111.",
+        ".11..11.",
+        "444..44.",
+        "..44.44.",
+    ],
+    # 130: big mario run frame 2 bottom (right leg forward)
+    130: [
+        ".881188.",
+        "88111188",
+        "18111181",
+        "11818181",
+        ".111111.",
+        ".11..11.",
+        ".44..444",
+        ".44.44..",
+    ],
+    # 131: big mario jump bottom (legs spread)
+    131: [
+        ".881188.",
+        "88111188",
+        "18111181",
+        "11818181",
+        "1111111.",
+        "11.11.1.",
+        "44.11.44",
+        "44....44",
+    ],
+})
 
 # Flag bit definitions:
 #   bit 0 (0x01) = solid (blocks movement)

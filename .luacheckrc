@@ -14,9 +14,11 @@ globals = {
   -- constants.lua
   "grav", "max_fall", "jump_str", "move_spd", "run_spd", "run_jump_str", "coyote",
   "enemy_spd", "max_enemies",
+  "invuln_len", "transform_len",
   "map_w", "map_h",
   "f_solid", "f_hazard", "f_coin", "f_goal", "f_breakable", "f_question", "f_pipe",
   "spr_idle", "spr_run1", "spr_run2", "spr_jump", "spr_dead", "spr_spawn", "spr_spike",
+  "spr_big_idle", "spr_big_run1", "spr_big_run2", "spr_big_jump",
   "spr_ground", "spr_brick", "spr_qblock1", "spr_qblock2", "spr_hitblock", "spr_hardblock",
   "spr_pipe_tl", "spr_pipe_tr", "spr_pipe_bl", "spr_pipe_br",
   "spr_goomba1", "spr_goomba2", "spr_goomba_flat",
@@ -31,9 +33,18 @@ globals = {
 
   -- helpers.lua
   "tile_at", "tile_flag_at", "is_solid", "is_hazard", "is_goal", "collect_coin",
+  "bump_block",
+
+  -- blocks.lua
+  "bumped_blocks", "pop_coins", "hidden_blocks", "multi_coin_bricks",
+  "spawn_bump", "update_bumps", "draw_bumps",
+  "spawn_pop_coin", "update_pop_coins", "draw_pop_coins",
+  "register_hidden", "find_hidden", "reveal_hidden",
+  "register_multi_coin", "find_multi_coin", "update_multi_coin_bricks",
 
   -- player.lua
   "make_player", "player_move", "player_check_tiles",
+  "grow_player", "shrink_player", "damage_player",
 
   -- camera.lua
   "update_cam",
@@ -54,7 +65,8 @@ globals = {
   "update_play", "get_player_spr", "update_dead", "update_clear",
 
   -- main.lua shared state
-  "player", "cam_x", "cam_y", "state", "coins", "death_t", "clear_t",
+  "player", "cam_x", "cam_y", "state", "coins", "death_t", "clear_t", "lives",
+  "register_specials",
 }
 
 -- PICO-8 API globals (read-only)
@@ -99,7 +111,8 @@ read_globals = {
 
 -- suppress "unused global" — src files are concatenated, so globals
 -- defined in one file are consumed by another
-ignore = {"131"}
+-- 213: unused loop variable (common for fixed-count `for i = 1, n` loops)
+ignore = {"131", "213"}
 
 -- no line length limit (PICO-8 has token limits, not line limits)
 max_line_length = false

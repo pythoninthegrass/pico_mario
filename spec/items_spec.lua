@@ -198,6 +198,20 @@ describe('items', function()
       assert.is_true(#sfx_calls >= 1)
     end)
 
+    it('triggers grow_player: power becomes 1 and h becomes 16', function()
+      _pico8.set_tile(3, 5, spr_qblock1)
+      register_contents(3, 5, 'mushroom')
+      bump_block(3, 5)
+      for _ = 1, 8 do update_items() end
+      _pico8.set_tile(3, 5, 0)
+      local m = items[1]
+      player.x = m.x
+      player.y = m.y
+      update_items()
+      assert.are.equal(1, player.power)
+      assert.are.equal(16, player.h)
+    end)
+
     it('does not collect during rise phase (still inside block)', function()
       _pico8.set_tile(3, 5, spr_qblock1)
       register_contents(3, 5, 'mushroom')

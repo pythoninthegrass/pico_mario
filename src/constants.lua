@@ -17,6 +17,10 @@ coyote = 5 -- frames of jump grace after leaving edge
 enemy_spd = 0.5
 max_enemies = 6
 
+-- power state timers (frames)
+invuln_len = 120      -- ~2s post-shrink invulnerability
+transform_len = 30    -- ~0.5s grow/shrink animation
+
 -- map dimensions (in tiles)
 map_w = 128
 map_h = 16
@@ -82,6 +86,11 @@ spr_bush_r = 101
 spr_hill = 102
 spr_hill_top = 103
 spr_hill_sm = 104
+-- row 7: big mario (top halves; bottoms at id + 16)
+spr_big_idle = 112
+spr_big_run1 = 113
+spr_big_run2 = 114
+spr_big_jump = 115
 
 -- game states
 st_play = 0

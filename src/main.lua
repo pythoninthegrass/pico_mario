@@ -84,9 +84,16 @@ function _draw()
   -- draw player
   if state == st_play
       or (state == st_dead and death_t < 10) then
-    local flip_x = (player.facing == -1)
-    local sn = get_player_spr(player)
-    spr(sn, player.x, player.y, 1, 1, flip_x)
+    -- flash every 4 frames while invuln
+    local blink = player.invuln_t > 0
+        and (player.invuln_t % 8) < 4
+    if not blink then
+      local flip_x = (player.facing == -1)
+      local sn = get_player_spr(player)
+      local th = 1
+      if player.power >= 1 then th = 2 end
+      spr(sn, player.x, player.y, 1, th, flip_x)
+    end
   end
 
   draw_enemies()

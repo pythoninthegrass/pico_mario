@@ -77,6 +77,11 @@ function bump_block(mx, my)
           mc.timer = 240
         end
       end
+    elseif player and player.power > 0 then
+      -- big mario shatters the brick
+      mset(mx, my, 0)
+      spawn_particles(mx * 8 + 4, my * 8 + 4, 4, 8)
+      sfx(1)
     else
       spawn_bump(mx, my, t)
     end
