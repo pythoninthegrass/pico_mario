@@ -42,7 +42,6 @@ function spawn_item(mx, my, kind)
     }
   )
 end
-
 -- axis-aligned overlap check between
 -- player (w, h) and an item (w, h).
 function item_overlaps_player(it)
@@ -60,7 +59,12 @@ function update_items()
       it.y -= 1
       if it.rise_t >= 8 then
         it.phase = "walk"
-        it.dx = 0.5
+        if it.kind == "star" then
+          it.dx = star_spd
+          it.dy = star_bounce   -- first bounce on emerge
+        else
+          it.dx = 0.5
+        end
       end
     elseif it.phase == "walk" then
       -- horizontal movement + wall reverse
@@ -81,13 +85,19 @@ function update_items()
       -- gravity
       it.dy += grav
       if it.dy > max_fall then it.dy = max_fall end
-      -- vertical + landing
+      -- vertical + landing.  stars auto-
+      -- bounce on every ground contact
+      -- instead of coming to rest.
       it.y += it.dy
       if it.dy >= 0 then
         if is_solid(it.x + 1, it.y + it.h)
             or is_solid(it.x + it.w - 2, it.y + it.h) then
           it.y = flr((it.y + it.h) / 8) * 8 - it.h
-          it.dy = 0
+          if it.kind == "star" then
+            it.dy = star_bounce
+          else
+            it.dy = 0
+          end
         end
       end
     end
@@ -99,10 +109,12 @@ function update_items()
       del(items, it)
       if it.kind == "mushroom" then
         grow_player(player)
+      elseif it.kind == "star" then
+        star_player(player)
       else
-        -- star + fireflower remain placeholder
-        -- (granted as score) until their own
-        -- power states are implemented
+        -- fireflower remains placeholder
+        -- (granted as score) until its
+        -- own power state is implemented
         coins += 1
         sfx(4)
       end

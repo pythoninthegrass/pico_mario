@@ -96,7 +96,18 @@ function _draw()
       local sn = get_player_spr(player)
       local th = 1
       if player.power >= 1 then th = 2 end
+      -- star invincibility: rotate key
+      -- player palette entries every frame
+      -- so mario cycles through 4 hues
+      if player.invince_t > 0 then
+        local rot = player.invince_t % 4
+        local cycle = { 8, 9, 10, 14 }
+        pal(8, cycle[(rot) % 4 + 1])
+        pal(4, cycle[(rot + 1) % 4 + 1])
+        pal(12, cycle[(rot + 2) % 4 + 1])
+      end
       spr(sn, player.x, player.y, 1, th, flip_x)
+      if player.invince_t > 0 then pal() end
     end
   end
 

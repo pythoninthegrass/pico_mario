@@ -19,6 +19,7 @@ describe('items', function()
     -- spy on sfx
     sfx_calls = {}
     _G.sfx = function(n) table.insert(sfx_calls, n) end
+    _G.music = function(_) end
     -- place a minimal player for overlap tests (anchor off-screen)
     _G.player = make_player(-1000, -1000)
     _G.cam_x = -1100
@@ -222,6 +223,83 @@ describe('items', function()
       assert.are.equal('rise', m.phase)
       update_items()
       assert.are.equal(1, #items)
+    end)
+  end)
+
+  describe('star walk phase', function()
+    _pico8 = _pico8  -- luacheck: ignore
+    local function make_walking_star(mx, my)
+      _pico8.set_tile(mx, my, spr_qblock1)
+      register_contents(mx, my, 'star')
+      bump_block(mx, my)
+      for _ = 1, 8 do update_items() end
+      _pico8.set_tile(mx, my, 0)
+      return items[1]
+    end
+
+    it('moves right at star_spd', function()
+      _pico8.set_tile(3, 6, spr_ground)
+      _pico8.set_tile(4, 6, spr_ground)
+      _pico8.set_tile(5, 6, spr_ground)
+      local s = make_walking_star(3, 5)
+      assert.are.equal(star_spd, s.dx)
+    end)
+
+    it('sets dy to star_bounce on emerge (first bounce)', function()
+      _pico8.set_tile(3, 6, spr_ground)
+      local s = make_walking_star(3, 5)
+      assert.are.equal(star_bounce, s.dy)
+    end)
+
+    it('bounces on ground landing (dy resets to star_bounce)', function()
+      _pico8.set_tile(3, 7, spr_ground)
+      _pico8.set_tile(4, 7, spr_ground)
+      _pico8.set_tile(5, 7, spr_ground)
+      _pico8.set_tile(6, 7, spr_ground)
+      _pico8.set_tile(7, 7, spr_ground)
+      local s = make_walking_star(3, 5)
+      -- simulate until star lands at least once
+      local bounced = false
+      for _ = 1, 120 do
+        local prev_dy = s.dy
+        update_items()
+        if prev_dy > 0 and s.dy == star_bounce then
+          bounced = true
+          break
+        end
+      end
+      assert.is_true(bounced)
+    end)
+  end)
+
+  describe('player collects star on overlap', function()
+    it('triggers star_player: invince_t > 0 and power unchanged', function()
+      _pico8.set_tile(3, 5, spr_qblock1)
+      register_contents(3, 5, 'star')
+      bump_block(3, 5)
+      for _ = 1, 8 do update_items() end
+      _pico8.set_tile(3, 5, 0)
+      local s = items[1]
+      player.x = s.x
+      player.y = s.y
+      update_items()
+      assert.are.equal(0, #items)
+      assert.are.equal(invince_len, player.invince_t)
+      assert.are.equal(0, player.power)
+    end)
+
+    it('does not trigger grow_player', function()
+      _pico8.set_tile(3, 5, spr_qblock1)
+      register_contents(3, 5, 'star')
+      bump_block(3, 5)
+      for _ = 1, 8 do update_items() end
+      _pico8.set_tile(3, 5, 0)
+      local s = items[1]
+      player.x = s.x
+      player.y = s.y
+      update_items()
+      assert.are.equal(0, player.power)
+      assert.are.equal(8, player.h)
     end)
   end)
 end)

@@ -17,6 +17,7 @@ function make_player(sx, sy)
     power = 0,        -- 0=small, 1=big, 2=fire (reserved)
     invuln_t = 0,     -- post-shrink invulnerability timer
     transform_t = 0,  -- grow/shrink animation timer
+    invince_t = 0,    -- star invincibility timer
   }
   return p
 end
@@ -48,14 +49,27 @@ end
 -- route damage through the power state.
 -- returns "dead" when small mario is
 -- hit, "ok" when the hit was absorbed
--- (shrink or invulnerability).
+-- (star invincibility, shrink, or
+-- post-shrink invulnerability).
 function damage_player(p)
+  if p.invince_t > 0 then return "ok" end
   if p.invuln_t > 0 then return "ok" end
   if p.power > 0 then
     shrink_player(p)
     return "ok"
   end
   return "dead"
+end
+
+-- activate star invincibility.  sets
+-- the timer, plays the power-up sfx,
+-- and swaps to the invincibility music
+-- track (actual track authoring is
+-- deferred; the call is wired).
+function star_player(p)
+  p.invince_t = invince_len
+  sfx(7)
+  music(1)
 end
 
 -- move player with collision resolve

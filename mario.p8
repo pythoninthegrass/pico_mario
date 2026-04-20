@@ -28,6 +28,14 @@ kick_grace_len = 4      -- frames after a kick where player-shell contact is ign
 -- power state timers (frames)
 invuln_len = 120      -- ~2s post-shrink invulnerability
 transform_len = 30    -- ~0.5s grow/shrink animation
+invince_len = 600     -- ~10s star invincibility
+
+-- star item physics
+star_spd = 1          -- constant horizontal speed (1 px/frame)
+star_bounce = -3      -- upward dy applied on each ground landing
+
+-- enemy backflip (struck by invincible mario)
+flip_rise = -3        -- upward dy launched when enemy is flipped
 
 -- map dimensions (in tiles)
 map_w = 128
@@ -214,6 +222,7 @@ function make_player(sx, sy)
     power = 0,        -- 0=small, 1=big, 2=fire (reserved)
     invuln_t = 0,     -- post-shrink invulnerability timer
     transform_t = 0,  -- grow/shrink animation timer
+    invince_t = 0,    -- star invincibility timer
   }
   return p
 end
@@ -245,14 +254,27 @@ end
 -- route damage through the power state.
 -- returns "dead" when small mario is
 -- hit, "ok" when the hit was absorbed
--- (shrink or invulnerability).
+-- (star invincibility, shrink, or
+-- post-shrink invulnerability).
 function damage_player(p)
+  if p.invince_t > 0 then return "ok" end
   if p.invuln_t > 0 then return "ok" end
   if p.power > 0 then
     shrink_player(p)
     return "ok"
   end
   return "dead"
+end
+
+-- activate star invincibility.  sets
+-- the timer, plays the power-up sfx,
+-- and swaps to the invincibility music
+-- track (actual track authoring is
+-- deferred; the call is wired).
+function star_player(p)
+  p.invince_t = invince_len
+  sfx(7)
+  music(1)
 end
 
 -- move player with collision resolve
@@ -662,7 +684,6 @@ function spawn_item(mx, my, kind)
     }
   )
 end
-
 -- axis-aligned overlap check between
 -- player (w, h) and an item (w, h).
 function item_overlaps_player(it)
@@ -680,7 +701,12 @@ function update_items()
       it.y -= 1
       if it.rise_t >= 8 then
         it.phase = "walk"
-        it.dx = 0.5
+        if it.kind == "star" then
+          it.dx = star_spd
+          it.dy = star_bounce   -- first bounce on emerge
+        else
+          it.dx = 0.5
+        end
       end
     elseif it.phase == "walk" then
       -- horizontal movement + wall reverse
@@ -701,13 +727,19 @@ function update_items()
       -- gravity
       it.dy += grav
       if it.dy > max_fall then it.dy = max_fall end
-      -- vertical + landing
+      -- vertical + landing.  stars auto-
+      -- bounce on every ground contact
+      -- instead of coming to rest.
       it.y += it.dy
       if it.dy >= 0 then
         if is_solid(it.x + 1, it.y + it.h)
             or is_solid(it.x + it.w - 2, it.y + it.h) then
           it.y = flr((it.y + it.h) / 8) * 8 - it.h
-          it.dy = 0
+          if it.kind == "star" then
+            it.dy = star_bounce
+          else
+            it.dy = 0
+          end
         end
       end
     end
@@ -719,10 +751,12 @@ function update_items()
       del(items, it)
       if it.kind == "mushroom" then
         grow_player(player)
+      elseif it.kind == "star" then
+        star_player(player)
       else
-        -- star + fireflower remain placeholder
-        -- (granted as score) until their own
-        -- power states are implemented
+        -- fireflower remains placeholder
+        -- (granted as score) until its
+        -- own power state is implemented
         coins += 1
         sfx(4)
       end
@@ -823,6 +857,17 @@ function kick_shell(e, dir)
   e.kick_t = kick_grace_len
 end
 
+-- backflip an enemy struck by invincible
+-- mario: sprite inverts, enemy is
+-- launched upward, and solid collision
+-- is dropped so it falls off-screen.
+function flip_enemy(e)
+  e.state = 'flipped'
+  e.dx = 0
+  e.dy = flip_rise
+  e.state_t = 0
+end
+
 function init_enemies()
   enemies = {}
   next_spawn = 1
@@ -848,6 +893,16 @@ function update_enemies()
       -- flat goomba pauses, then vanishes
       e.state_t += 1
       if e.state_t >= squish_len then
+        del(enemies, e)
+      end
+    elseif e.state == 'flipped' then
+      -- backflipping enemy: gravity only,
+      -- no collision (falls through floor),
+      -- removed once off the bottom of map.
+      e.dy += grav
+      if e.dy > max_fall then e.dy = max_fall end
+      e.y += e.dy
+      if e.y > map_h * 8 + 16 then
         del(enemies, e)
       end
     else
@@ -931,12 +986,17 @@ function draw_enemies()
     local sn = e.spr1
     if e.state == 'squished' then
       sn = spr_goomba_flat
-    elseif e.state == 'shell' then
-      sn = spr_koopa_shell
+    elseif e.state == 'shell' or e.state == 'flipped' then
+      if e.etype == 'koopa' then
+        sn = spr_koopa_shell
+      end
+      if e.state == 'flipped' and e.etype ~= 'koopa' then
+        sn = spr_goomba_flat
+      end
     elseif e.frame == 1 then
       sn = e.spr2
     end
-    spr(sn, e.x, e.y, 1, 1, e.dx > 0)
+    spr(sn, e.x, e.y, 1, 1, e.dx > 0, e.state == 'flipped')
   end
 end
 ----------------------------------------
@@ -1037,7 +1097,18 @@ function _draw()
       local sn = get_player_spr(player)
       local th = 1
       if player.power >= 1 then th = 2 end
+      -- star invincibility: rotate key
+      -- player palette entries every frame
+      -- so mario cycles through 4 hues
+      if player.invince_t > 0 then
+        local rot = player.invince_t % 4
+        local cycle = { 8, 9, 10, 14 }
+        pal(8, cycle[(rot) % 4 + 1])
+        pal(4, cycle[(rot + 1) % 4 + 1])
+        pal(12, cycle[(rot + 2) % 4 + 1])
+      end
       spr(sn, player.x, player.y, 1, th, flip_x)
+      if player.invince_t > 0 then pal() end
     end
   end
 
@@ -1080,6 +1151,12 @@ function update_play()
   end
   if p.transform_t > 0 then
     p.transform_t -= 1
+  end
+  if p.invince_t > 0 then
+    p.invince_t -= 1
+    if p.invince_t == 0 then
+      music(0)
+    end
   end
 
   -- run state (x button)
@@ -1200,7 +1277,9 @@ end
 -- player touched an alive enemy from the
 -- side or below, and "ok" otherwise.
 -- invuln skips both branches so shrink
--- i-frames behave as in SMB.
+-- i-frames behave as in SMB.  star
+-- invincibility instead backflips every
+-- touched enemy and awards chain points.
 function check_enemy_hits(p)
   if p.invuln_t > 0 then return "ok" end
 
@@ -1214,6 +1293,16 @@ function check_enemy_hits(p)
         and p.x + p.w - 1 > e.x
         and p.y < e.y + e.h
         and p.y + p.h > e.y then
+      if p.invince_t > 0 then
+        -- star: backflip + score, no damage
+        flip_enemy(e)
+        local idx = min(stomp_chain + 1, #chain_scores)
+        stomp_chain += 1
+        local pts = chain_scores[idx]
+        score += pts
+        spawn_score_pop(e.x, e.y - 4, pts)
+        sfx(6)
+      else
       local stomp = p.dy > 0
           and p.y + p.h - e.y <= 6
       local shell_still = e.state == 'shell' and e.dx == 0
@@ -1260,6 +1349,7 @@ function check_enemy_hits(p)
         else
           return "hit"
         end
+      end
       end
     end
   end

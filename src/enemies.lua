@@ -80,6 +80,17 @@ function kick_shell(e, dir)
   e.kick_t = kick_grace_len
 end
 
+-- backflip an enemy struck by invincible
+-- mario: sprite inverts, enemy is
+-- launched upward, and solid collision
+-- is dropped so it falls off-screen.
+function flip_enemy(e)
+  e.state = 'flipped'
+  e.dx = 0
+  e.dy = flip_rise
+  e.state_t = 0
+end
+
 function init_enemies()
   enemies = {}
   next_spawn = 1
@@ -105,6 +116,16 @@ function update_enemies()
       -- flat goomba pauses, then vanishes
       e.state_t += 1
       if e.state_t >= squish_len then
+        del(enemies, e)
+      end
+    elseif e.state == 'flipped' then
+      -- backflipping enemy: gravity only,
+      -- no collision (falls through floor),
+      -- removed once off the bottom of map.
+      e.dy += grav
+      if e.dy > max_fall then e.dy = max_fall end
+      e.y += e.dy
+      if e.y > map_h * 8 + 16 then
         del(enemies, e)
       end
     else
@@ -188,11 +209,16 @@ function draw_enemies()
     local sn = e.spr1
     if e.state == 'squished' then
       sn = spr_goomba_flat
-    elseif e.state == 'shell' then
-      sn = spr_koopa_shell
+    elseif e.state == 'shell' or e.state == 'flipped' then
+      if e.etype == 'koopa' then
+        sn = spr_koopa_shell
+      end
+      if e.state == 'flipped' and e.etype ~= 'koopa' then
+        sn = spr_goomba_flat
+      end
     elseif e.frame == 1 then
       sn = e.spr2
     end
-    spr(sn, e.x, e.y, 1, 1, e.dx > 0)
+    spr(sn, e.x, e.y, 1, 1, e.dx > 0, e.state == 'flipped')
   end
 end

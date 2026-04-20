@@ -25,6 +25,14 @@ kick_grace_len = 4      -- frames after a kick where player-shell contact is ign
 -- power state timers (frames)
 invuln_len = 120      -- ~2s post-shrink invulnerability
 transform_len = 30    -- ~0.5s grow/shrink animation
+invince_len = 600     -- ~10s star invincibility
+
+-- star item physics
+star_spd = 1          -- constant horizontal speed (1 px/frame)
+star_bounce = -3      -- upward dy applied on each ground landing
+
+-- enemy backflip (struck by invincible mario)
+flip_rise = -3        -- upward dy launched when enemy is flipped
 
 -- map dimensions (in tiles)
 map_w = 128

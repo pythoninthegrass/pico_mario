@@ -1,5 +1,6 @@
 describe('player power state', function()
   local sfx_calls
+  local music_calls
 
   before_each(function()
     load_game()
@@ -7,7 +8,9 @@ describe('player power state', function()
     _G.lives = 3
     _G.particles = {}
     sfx_calls = {}
+    music_calls = {}
     _G.sfx = function(n) table.insert(sfx_calls, n) end
+    _G.music = function(n) table.insert(music_calls, n) end
     -- baseline player at arbitrary position
     _G.player = make_player(40, 40)
   end)
@@ -19,6 +22,7 @@ describe('player power state', function()
       assert.are.equal(6, player.w)
       assert.are.equal(0, player.invuln_t)
       assert.are.equal(0, player.transform_t)
+      assert.are.equal(0, player.invince_t)
     end)
   end)
 
@@ -149,6 +153,58 @@ describe('player power state', function()
       grow_player(player)
       player.grounded = false
       assert.are.equal(spr_big_jump, get_player_spr(player))
+    end)
+  end)
+
+  describe('star_player', function()
+    it('sets invince_t to invince_len', function()
+      star_player(player)
+      assert.are.equal(invince_len, player.invince_t)
+    end)
+
+    it('plays the star power-up sfx', function()
+      star_player(player)
+      local found = false
+      for _, n in ipairs(sfx_calls) do if n == 7 then found = true end end
+      assert.is_true(found)
+    end)
+
+    it('switches to invincibility music (music(1))', function()
+      star_player(player)
+      assert.are.equal(1, music_calls[#music_calls])
+    end)
+
+    it('does not change power state or hitbox', function()
+      star_player(player)
+      assert.are.equal(0, player.power)
+      assert.are.equal(8, player.h)
+    end)
+
+    it('stacks with big mario (power preserved)', function()
+      grow_player(player)
+      star_player(player)
+      assert.are.equal(1, player.power)
+      assert.are.equal(16, player.h)
+      assert.is_true(player.invince_t > 0)
+    end)
+  end)
+
+  describe('damage_player under invincibility', function()
+    it('returns "ok" and preserves small-mario state', function()
+      star_player(player)
+      local result = damage_player(player)
+      assert.are.equal('ok', result)
+      assert.are.equal(0, player.power)
+      assert.are.equal(invince_len, player.invince_t)
+    end)
+
+    it('returns "ok" and preserves big-mario state', function()
+      grow_player(player)
+      star_player(player)
+      local result = damage_player(player)
+      assert.are.equal('ok', result)
+      assert.are.equal(1, player.power)
+      assert.are.equal(16, player.h)
     end)
   end)
 end)

@@ -11,6 +11,12 @@ function update_play()
   if p.transform_t > 0 then
     p.transform_t -= 1
   end
+  if p.invince_t > 0 then
+    p.invince_t -= 1
+    if p.invince_t == 0 then
+      music(0)
+    end
+  end
 
   -- run state (x button)
   p.running = btn(5)
@@ -130,7 +136,9 @@ end
 -- player touched an alive enemy from the
 -- side or below, and "ok" otherwise.
 -- invuln skips both branches so shrink
--- i-frames behave as in SMB.
+-- i-frames behave as in SMB.  star
+-- invincibility instead backflips every
+-- touched enemy and awards chain points.
 function check_enemy_hits(p)
   if p.invuln_t > 0 then return "ok" end
 
@@ -144,6 +152,16 @@ function check_enemy_hits(p)
         and p.x + p.w - 1 > e.x
         and p.y < e.y + e.h
         and p.y + p.h > e.y then
+      if p.invince_t > 0 then
+        -- star: backflip + score, no damage
+        flip_enemy(e)
+        local idx = min(stomp_chain + 1, #chain_scores)
+        stomp_chain += 1
+        local pts = chain_scores[idx]
+        score += pts
+        spawn_score_pop(e.x, e.y - 4, pts)
+        sfx(6)
+      else
       local stomp = p.dy > 0
           and p.y + p.h - e.y <= 6
       local shell_still = e.state == 'shell' and e.dx == 0
@@ -190,6 +208,7 @@ function check_enemy_hits(p)
         else
           return "hit"
         end
+      end
       end
     end
   end

@@ -14,7 +14,9 @@ globals = {
   -- constants.lua
   "grav", "max_fall", "jump_str", "move_spd", "run_spd", "run_jump_str", "coyote",
   "enemy_spd", "max_enemies", "squish_len", "stomp_bounce", "chain_scores",
+  "shell_spd", "kick_grace_len",
   "invuln_len", "transform_len",
+  "invince_len", "star_spd", "star_bounce", "flip_rise",
   "map_w", "map_h",
   "f_solid", "f_hazard", "f_coin", "f_goal", "f_breakable", "f_question", "f_pipe",
   "spr_idle", "spr_run1", "spr_run2", "spr_jump", "spr_dead", "spr_spawn", "spr_spike",
@@ -45,7 +47,7 @@ globals = {
 
   -- player.lua
   "make_player", "player_move", "player_check_tiles",
-  "grow_player", "shrink_player", "damage_player",
+  "grow_player", "shrink_player", "damage_player", "star_player",
 
   -- camera.lua
   "update_cam",
@@ -61,6 +63,7 @@ globals = {
   -- enemies.lua
   "enemy_spawns", "enemies", "next_spawn",
   "make_enemy", "init_enemies", "spawn_enemies", "update_enemies", "draw_enemies",
+  "stomp_enemy", "kick_shell", "flip_enemy",
 
   -- states.lua
   "update_play", "get_player_spr", "update_dead", "update_clear",
