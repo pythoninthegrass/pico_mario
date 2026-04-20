@@ -1,15 +1,16 @@
 ---
 id: TASK-011
 title: Implement mushroom power-up item
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-04-15 20:48'
+updated_date: '2026-04-20 06:23'
 labels: []
 milestone: m-2
 dependencies:
   - TASK-010
 priority: high
-ordinal: 11000
+ordinal: 369.140625
 ---
 
 ## Description

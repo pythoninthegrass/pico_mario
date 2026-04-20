@@ -4,12 +4,13 @@ title: Implement Mario death animation
 status: To Do
 assignee: []
 created_date: '2026-04-15 20:49'
+updated_date: '2026-04-19 19:46'
 labels: []
 milestone: m-4
 dependencies:
   - TASK-008
 priority: low
-ordinal: 20000
+ordinal: 27000
 ---
 
 ## Description

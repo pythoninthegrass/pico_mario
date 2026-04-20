@@ -1,15 +1,16 @@
 ---
 id: TASK-014
 title: Implement star power-up and invincibility
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-04-15 20:48'
+updated_date: '2026-04-20 06:23'
 labels: []
 milestone: m-3
 dependencies:
   - TASK-013
 priority: medium
-ordinal: 14000
+ordinal: 451.171875
 ---
 
 ## Description

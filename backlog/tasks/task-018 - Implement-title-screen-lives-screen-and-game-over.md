@@ -4,12 +4,13 @@ title: 'Implement title screen, lives screen, and game over'
 status: To Do
 assignee: []
 created_date: '2026-04-15 20:49'
+updated_date: '2026-04-19 19:45'
 labels: []
 milestone: m-4
 dependencies:
   - TASK-016
 priority: medium
-ordinal: 18000
+ordinal: 25000
 ---
 
 ## Description

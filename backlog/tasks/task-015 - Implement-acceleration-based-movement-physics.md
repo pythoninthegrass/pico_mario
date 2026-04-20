@@ -1,16 +1,16 @@
 ---
 id: TASK-015
 title: Implement acceleration-based movement physics
-status: In Progress
+status: To Do
 assignee: []
 created_date: '2026-04-15 20:49'
-updated_date: '2026-04-17 23:23'
+updated_date: '2026-04-19 19:46'
 labels: []
 milestone: m-3
 dependencies:
   - TASK-004
 priority: medium
-ordinal: 8000
+ordinal: 15000
 ---
 
 ## Description

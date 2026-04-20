@@ -1,15 +1,16 @@
 ---
 id: TASK-013
 title: Implement big Mario power-up state
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-04-15 20:48'
+updated_date: '2026-04-20 06:23'
 labels: []
 milestone: m-3
 dependencies:
   - TASK-011
 priority: high
-ordinal: 13000
+ordinal: 410.15625
 ---
 
 ## Description

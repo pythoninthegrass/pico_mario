@@ -1,15 +1,16 @@
 ---
 id: TASK-012
 title: Implement hidden blocks and multi-coin bricks
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-04-15 20:48'
+updated_date: '2026-04-20 06:23'
 labels: []
 milestone: m-2
 dependencies:
   - TASK-010
 priority: low
-ordinal: 12000
+ordinal: 328.125
 ---
 
 ## Description

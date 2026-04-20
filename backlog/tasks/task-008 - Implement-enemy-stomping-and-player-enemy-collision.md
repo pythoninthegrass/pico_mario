@@ -1,15 +1,16 @@
 ---
 id: TASK-008
 title: Implement enemy stomping and player-enemy collision
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-04-15 20:47'
+updated_date: '2026-04-20 06:22'
 labels: []
 milestone: m-1
 dependencies:
   - TASK-007
 priority: high
-ordinal: 8000
+ordinal: 656.25
 ---
 
 ## Description
