@@ -4,6 +4,7 @@
 function _init()
   state = st_play
   coins = 0
+  lives = lives or 3
   death_t = 0
   clear_t = 0
 
@@ -29,7 +30,30 @@ function _init()
   particles = {}
   bumped_blocks = {}
   pop_coins = {}
+  hidden_blocks = {}
+  multi_coin_bricks = {}
+  items = {}
+  block_contents = {}
+  register_specials()
   init_enemies()
+end
+
+-- SMB 1-1 hidden / multi-coin tiles.
+-- Positions chosen from the current
+-- map layout; retune here only.
+function register_specials()
+  -- hidden 1-up: empty air above the
+  -- row 10 brick group (reachable by
+  -- jumping from the bricks at 55-59)
+  register_hidden(60, 7, "1up")
+  -- multi-coin brick: first brick of
+  -- the row 10 brick group at col 55
+  register_multi_coin(55, 10)
+  -- ? block contents (1-1): first ?
+  -- in the brick row gives a mushroom,
+  -- the later ? gives a star.
+  register_contents(17, 10, "mushroom")
+  register_contents(19, 10, "star")
 end
 
 function _update60()
@@ -43,6 +67,8 @@ function _update60()
   update_particles()
   update_bumps()
   update_pop_coins()
+  update_multi_coin_bricks()
+  update_items()
 end
 
 function _draw()
@@ -64,6 +90,7 @@ function _draw()
   end
 
   draw_enemies()
+  draw_items()
   draw_pop_coins()
   draw_particles()
 

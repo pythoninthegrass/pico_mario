@@ -42,20 +42,44 @@ function collect_coin(px, py)
 end
 
 -- bump block at tile coords
--- ? block: release coin, convert to
--- hit block. brick: bump animation
--- only (small mario).
+-- ? block: release registered content
+-- (coin by default, or an item), then
+-- convert to hit block.  multi-coin
+-- brick: one coin per bump for up to
+-- 10 within a 4s window.  plain brick:
+-- bump animation only (small mario).
 function bump_block(mx, my)
   local t = mget(mx, my)
   if t == 0 then return end
   if fget(t, f_question) then
     if spawn_bump(mx, my, spr_hitblock) then
-      spawn_pop_coin(mx, my)
-      coins += 1
-      sfx(1)
+      local kind = contents_at(mx, my)
+      if kind == "coin" then
+        spawn_pop_coin(mx, my)
+        coins += 1
+        sfx(1)
+      else
+        spawn_item(mx, my, kind)
+        sfx(4)
+      end
     end
   elseif fget(t, f_breakable) then
-    spawn_bump(mx, my, t)
+    local mc = find_multi_coin(mx, my)
+    if mc and mc.bumps_left > 0
+        and (not mc.active or mc.timer > 0) then
+      if spawn_bump(mx, my, t) then
+        spawn_pop_coin(mx, my)
+        coins += 1
+        sfx(1)
+        mc.bumps_left -= 1
+        if not mc.active then
+          mc.active = true
+          mc.timer = 240
+        end
+      end
+    else
+      spawn_bump(mx, my, t)
+    end
   end
 end
 

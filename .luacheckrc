@@ -41,6 +41,11 @@ globals = {
   -- particles.lua
   "particles", "spawn_particles", "update_particles", "draw_particles",
 
+  -- items.lua
+  "items", "block_contents",
+  "register_contents", "contents_at", "spawn_item",
+  "item_overlaps_player", "update_items", "draw_items",
+
   -- enemies.lua
   "enemy_spawns", "enemies", "next_spawn",
   "make_enemy", "init_enemies", "spawn_enemies", "update_enemies", "draw_enemies",

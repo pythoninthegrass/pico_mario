@@ -63,6 +63,7 @@ LUA_SOURCES = [
     "src/camera.lua",
     "src/particles.lua",
     "src/blocks.lua",
+    "src/items.lua",
     "src/enemies.lua",
     "src/main.lua",
     "src/states.lua",

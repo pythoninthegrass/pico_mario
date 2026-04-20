@@ -135,20 +135,44 @@ function collect_coin(px, py)
 end
 
 -- bump block at tile coords
--- ? block: release coin, convert to
--- hit block. brick: bump animation
--- only (small mario).
+-- ? block: release registered content
+-- (coin by default, or an item), then
+-- convert to hit block.  multi-coin
+-- brick: one coin per bump for up to
+-- 10 within a 4s window.  plain brick:
+-- bump animation only (small mario).
 function bump_block(mx, my)
   local t = mget(mx, my)
   if t == 0 then return end
   if fget(t, f_question) then
     if spawn_bump(mx, my, spr_hitblock) then
-      spawn_pop_coin(mx, my)
-      coins += 1
-      sfx(1)
+      local kind = contents_at(mx, my)
+      if kind == "coin" then
+        spawn_pop_coin(mx, my)
+        coins += 1
+        sfx(1)
+      else
+        spawn_item(mx, my, kind)
+        sfx(4)
+      end
     end
   elseif fget(t, f_breakable) then
-    spawn_bump(mx, my, t)
+    local mc = find_multi_coin(mx, my)
+    if mc and mc.bumps_left > 0
+        and (not mc.active or mc.timer > 0) then
+      if spawn_bump(mx, my, t) then
+        spawn_pop_coin(mx, my)
+        coins += 1
+        sfx(1)
+        mc.bumps_left -= 1
+        if not mc.active then
+          mc.active = true
+          mc.timer = 240
+        end
+      end
+    else
+      spawn_bump(mx, my, t)
+    end
   end
 end
 
@@ -202,6 +226,15 @@ function player_move(p)
   p.y += p.dy
   p.grounded = false
   if p.dy < 0 then
+    -- reveal hidden blocks in head row
+    -- first so they act solid this frame
+    local hmy = flr(p.y / 8)
+    local hmx_l = flr((p.x + 1) / 8)
+    local hmx_r = flr((p.x + p.w - 2) / 8)
+    reveal_hidden(hmx_l, hmy)
+    if hmx_r ~= hmx_l then
+      reveal_hidden(hmx_r, hmy)
+    end
     -- head bump
     local hit_l = is_solid(p.x + 1, p.y)
     local hit_r = is_solid(p.x + p.w - 2, p.y)
@@ -397,6 +430,223 @@ function draw_pop_coins()
 end
 
 ----------------------------------------
+-- hidden blocks: invisible until hit
+-- from below, then revealed as solid
+-- hit block.  content is "coin" or
+-- "1up"; 1-up grants +1 life directly
+-- (mushroom pickup is TASK-011).
+----------------------------------------
+hidden_blocks = {}
+
+function register_hidden(mx, my, content)
+  add(
+    hidden_blocks, {
+      mx = mx, my = my,
+      content = content
+    }
+  )
+end
+
+function find_hidden(mx, my)
+  for hb in all(hidden_blocks) do
+    if hb.mx == mx and hb.my == my then
+      return hb
+    end
+  end
+  return nil
+end
+
+function reveal_hidden(mx, my)
+  local hb = find_hidden(mx, my)
+  if not hb then return false end
+  del(hidden_blocks, hb)
+  mset(mx, my, spr_hitblock)
+  spawn_bump(mx, my, spr_hitblock)
+  if hb.content == "1up" then
+    lives += 1
+    spawn_pop_coin(mx, my)
+    sfx(1)
+  else
+    spawn_pop_coin(mx, my)
+    coins += 1
+    sfx(1)
+  end
+  return true
+end
+
+----------------------------------------
+-- multi-coin bricks: registered brick
+-- tiles that dispense one coin per
+-- bump up to 10, within a 240-frame
+-- window after the first bump.  on
+-- exhaustion or expiry, tile becomes
+-- an empty hit block.
+----------------------------------------
+multi_coin_bricks = {}
+
+function register_multi_coin(mx, my)
+  add(
+    multi_coin_bricks, {
+      mx = mx, my = my,
+      bumps_left = 10,
+      timer = 0,
+      active = false
+    }
+  )
+end
+
+function find_multi_coin(mx, my)
+  for mc in all(multi_coin_bricks) do
+    if mc.mx == mx and mc.my == my then
+      return mc
+    end
+  end
+  return nil
+end
+
+function update_multi_coin_bricks()
+  for i = #multi_coin_bricks, 1, -1 do
+    local mc = multi_coin_bricks[i]
+    if mc.active then
+      mc.timer -= 1
+      if mc.timer <= 0 or mc.bumps_left <= 0 then
+        -- wait for any active bump to finish
+        -- before rewriting the tile
+        local bumping = false
+        for b in all(bumped_blocks) do
+          if b.mx == mc.mx and b.my == mc.my then
+            bumping = true
+          end
+        end
+        if not bumping then
+          mset(mc.mx, mc.my, spr_hitblock)
+          del(multi_coin_bricks, mc)
+        end
+      end
+    end
+  end
+end
+
+----------------------------------------
+-- items: power-up entities that emerge
+-- from ? blocks and move through the
+-- world.  collection effects integrate
+-- with the player power state (TASK-013).
+----------------------------------------
+items = {}
+block_contents = {}
+
+-- register a specific ? block position
+-- as dispensing a power-up instead of
+-- the default coin.  kind values:
+-- "coin" (default), "mushroom", "star",
+-- "fireflower".
+function register_contents(mx, my, kind)
+  add(block_contents, { mx = mx, my = my, kind = kind })
+end
+
+function contents_at(mx, my)
+  for bc in all(block_contents) do
+    if bc.mx == mx and bc.my == my then
+      return bc.kind
+    end
+  end
+  return "coin"
+end
+
+-- spawn an item above a ? block.  the
+-- item starts in rise phase, creeping
+-- up one pixel per frame for 8 frames
+-- before entering normal walk physics.
+function spawn_item(mx, my, kind)
+  add(
+    items, {
+      kind = kind,
+      x = mx * 8,
+      y = my * 8,
+      dx = 0, dy = 0,
+      w = 6, h = 8,
+      phase = "rise",
+      rise_t = 0,
+    }
+  )
+end
+
+-- axis-aligned overlap check between
+-- player (w, h) and an item (w, h).
+function item_overlaps_player(it)
+  return it.x < player.x + player.w
+      and it.x + it.w > player.x
+      and it.y < player.y + player.h
+      and it.y + it.h > player.y
+end
+
+function update_items()
+  for i = #items, 1, -1 do
+    local it = items[i]
+    if it.phase == "rise" then
+      it.rise_t += 1
+      it.y -= 1
+      if it.rise_t >= 8 then
+        it.phase = "walk"
+        it.dx = 0.5
+      end
+    elseif it.phase == "walk" then
+      -- horizontal movement + wall reverse
+      it.x += it.dx
+      if it.dx < 0 then
+        if is_solid(it.x, it.y + 1)
+            or is_solid(it.x, it.y + it.h - 1) then
+          it.x = flr(it.x / 8) * 8 + 8
+          it.dx = -it.dx
+        end
+      elseif it.dx > 0 then
+        if is_solid(it.x + it.w - 1, it.y + 1)
+            or is_solid(it.x + it.w - 1, it.y + it.h - 1) then
+          it.x = flr((it.x + it.w - 1) / 8) * 8 - it.w
+          it.dx = -it.dx
+        end
+      end
+      -- gravity
+      it.dy += grav
+      if it.dy > max_fall then it.dy = max_fall end
+      -- vertical + landing
+      it.y += it.dy
+      if it.dy >= 0 then
+        if is_solid(it.x + 1, it.y + it.h)
+            or is_solid(it.x + it.w - 2, it.y + it.h) then
+          it.y = flr((it.y + it.h) / 8) * 8 - it.h
+          it.dy = 0
+        end
+      end
+    end
+
+    -- pit removal (below map)
+    if it.y > map_h * 8 + 16 then
+      del(items, it)
+    elseif it.phase == "walk" and item_overlaps_player(it) then
+      -- placeholder until TASK-013: power-up
+      -- grants score in lieu of state change.
+      -- TASK-013 will call grow_player(p).
+      del(items, it)
+      coins += 1
+      sfx(4)
+    end
+  end
+end
+
+function draw_items()
+  for it in all(items) do
+    local sn = spr_mushroom
+    if it.kind == "star" then
+      sn = spr_star
+    elseif it.kind == "fireflower" then
+      sn = spr_fireflower
+    end
+    spr(sn, it.x - 1, it.y)
+  end
+end
+----------------------------------------
 -- enemies
 ----------------------------------------
 -- spawn positions sourced from
@@ -517,6 +767,7 @@ end
 function _init()
   state = st_play
   coins = 0
+  lives = lives or 3
   death_t = 0
   clear_t = 0
 
@@ -542,7 +793,30 @@ function _init()
   particles = {}
   bumped_blocks = {}
   pop_coins = {}
+  hidden_blocks = {}
+  multi_coin_bricks = {}
+  items = {}
+  block_contents = {}
+  register_specials()
   init_enemies()
+end
+
+-- SMB 1-1 hidden / multi-coin tiles.
+-- Positions chosen from the current
+-- map layout; retune here only.
+function register_specials()
+  -- hidden 1-up: empty air above the
+  -- row 10 brick group (reachable by
+  -- jumping from the bricks at 55-59)
+  register_hidden(60, 7, "1up")
+  -- multi-coin brick: first brick of
+  -- the row 10 brick group at col 55
+  register_multi_coin(55, 10)
+  -- ? block contents (1-1): first ?
+  -- in the brick row gives a mushroom,
+  -- the later ? gives a star.
+  register_contents(17, 10, "mushroom")
+  register_contents(19, 10, "star")
 end
 
 function _update60()
@@ -556,6 +830,8 @@ function _update60()
   update_particles()
   update_bumps()
   update_pop_coins()
+  update_multi_coin_bricks()
+  update_items()
 end
 
 function _draw()
@@ -577,6 +853,7 @@ function _draw()
   end
 
   draw_enemies()
+  draw_items()
   draw_pop_coins()
   draw_particles()
 

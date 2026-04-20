@@ -4,7 +4,7 @@ title: Implement big Mario power-up state
 status: In Progress
 assignee: []
 created_date: '2026-04-15 20:48'
-updated_date: '2026-04-20 06:23'
+updated_date: '2026-04-20 17:00'
 labels: []
 milestone: m-3
 dependencies:
@@ -38,6 +38,12 @@ Big Mario sprites need to be drawn as 8x16 (1 wide x 2 tall in sprite sheet). Th
 - [ ] #7 Power-up SFX plays on transformation
 - [ ] #8 Collision detection works correctly for both small and big hitboxes
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Sprite approach decision (pre-implementation): big Mario 8x16 sprites drawn via spr(n,x,y,1,2) require paired top (row N) + bottom (row N+1) slots. Row 0 top half has open slots 9-15, but row 1 (corresponding bottoms) is fully packed with terrain sprites. Plan: allocate big Mario sprites to new rows (tentatively rows 7+/beyond the current 7-row layout) and add pixel data + flag entries in generate_cart.py. Dependency note: TASK-011 (mushroom item) must land first so collection can drive grow_player().
+<!-- SECTION:NOTES:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->

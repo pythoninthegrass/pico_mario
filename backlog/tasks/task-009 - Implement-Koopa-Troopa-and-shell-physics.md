@@ -4,13 +4,13 @@ title: Implement Koopa Troopa and shell physics
 status: In Progress
 assignee: []
 created_date: '2026-04-15 20:48'
-updated_date: '2026-04-19 19:44'
+updated_date: '2026-04-20 17:13'
 labels: []
 milestone: m-1
 dependencies:
   - TASK-008
 priority: medium
-ordinal: 1421.875
+ordinal: 440.91796875
 ---
 
 ## Description

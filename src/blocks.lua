@@ -83,3 +83,101 @@ function draw_pop_coins()
   end
 end
 
+----------------------------------------
+-- hidden blocks: invisible until hit
+-- from below, then revealed as solid
+-- hit block.  content is "coin" or
+-- "1up"; 1-up grants +1 life directly
+-- (mushroom pickup is TASK-011).
+----------------------------------------
+hidden_blocks = {}
+
+function register_hidden(mx, my, content)
+  add(
+    hidden_blocks, {
+      mx = mx, my = my,
+      content = content
+    }
+  )
+end
+
+function find_hidden(mx, my)
+  for hb in all(hidden_blocks) do
+    if hb.mx == mx and hb.my == my then
+      return hb
+    end
+  end
+  return nil
+end
+
+function reveal_hidden(mx, my)
+  local hb = find_hidden(mx, my)
+  if not hb then return false end
+  del(hidden_blocks, hb)
+  mset(mx, my, spr_hitblock)
+  spawn_bump(mx, my, spr_hitblock)
+  if hb.content == "1up" then
+    lives += 1
+    spawn_pop_coin(mx, my)
+    sfx(1)
+  else
+    spawn_pop_coin(mx, my)
+    coins += 1
+    sfx(1)
+  end
+  return true
+end
+
+----------------------------------------
+-- multi-coin bricks: registered brick
+-- tiles that dispense one coin per
+-- bump up to 10, within a 240-frame
+-- window after the first bump.  on
+-- exhaustion or expiry, tile becomes
+-- an empty hit block.
+----------------------------------------
+multi_coin_bricks = {}
+
+function register_multi_coin(mx, my)
+  add(
+    multi_coin_bricks, {
+      mx = mx, my = my,
+      bumps_left = 10,
+      timer = 0,
+      active = false
+    }
+  )
+end
+
+function find_multi_coin(mx, my)
+  for mc in all(multi_coin_bricks) do
+    if mc.mx == mx and mc.my == my then
+      return mc
+    end
+  end
+  return nil
+end
+
+function update_multi_coin_bricks()
+  for i = #multi_coin_bricks, 1, -1 do
+    local mc = multi_coin_bricks[i]
+    if mc.active then
+      mc.timer -= 1
+      if mc.timer <= 0 or mc.bumps_left <= 0 then
+        -- wait for any active bump to finish
+        -- before rewriting the tile
+        local bumping = false
+        for b in all(bumped_blocks) do
+          if b.mx == mc.mx and b.my == mc.my then
+            bumping = true
+          end
+        end
+        if not bumping then
+          mset(mc.mx, mc.my, spr_hitblock)
+          del(multi_coin_bricks, mc)
+        end
+      end
+    end
+  end
+end
+

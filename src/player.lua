@@ -48,6 +48,15 @@ function player_move(p)
   p.y += p.dy
   p.grounded = false
   if p.dy < 0 then
+    -- reveal hidden blocks in head row
+    -- first so they act solid this frame
+    local hmy = flr(p.y / 8)
+    local hmx_l = flr((p.x + 1) / 8)
+    local hmx_r = flr((p.x + p.w - 2) / 8)
+    reveal_hidden(hmx_l, hmy)
+    if hmx_r ~= hmx_l then
+      reveal_hidden(hmx_r, hmy)
+    end
     -- head bump
     local hit_l = is_solid(p.x + 1, p.y)
     local hit_r = is_solid(p.x + p.w - 2, p.y)

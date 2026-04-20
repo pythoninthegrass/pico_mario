@@ -4,13 +4,13 @@ title: Implement enemy stomping and player-enemy collision
 status: In Progress
 assignee: []
 created_date: '2026-04-15 20:47'
-updated_date: '2026-04-20 06:22'
+updated_date: '2026-04-20 17:13'
 labels: []
 milestone: m-1
 dependencies:
   - TASK-007
 priority: high
-ordinal: 656.25
+ordinal: 430.6640625
 ---
 
 ## Description
