@@ -1,16 +1,17 @@
 ---
 id: TASK-017
 title: Implement flagpole and level clear sequence
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-04-15 20:49'
+updated_date: '2026-04-20 21:58'
 labels: []
 milestone: m-4
 dependencies:
   - TASK-004
   - TASK-016
 priority: high
-ordinal: 17000
+ordinal: 3000
 ---
 
 ## Description

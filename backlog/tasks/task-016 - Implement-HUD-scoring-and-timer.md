@@ -1,15 +1,16 @@
 ---
 id: TASK-016
 title: 'Implement HUD, scoring, and timer'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-04-15 20:49'
+updated_date: '2026-04-20 21:58'
 labels: []
 milestone: m-4
 dependencies:
   - TASK-008
 priority: high
-ordinal: 16000
+ordinal: 2000
 ---
 
 ## Description
