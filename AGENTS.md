@@ -116,6 +116,24 @@ magick maps/smb_1-1.png -crop 256x240+0+0 +repage /tmp/smb_start.png
 
 Use `magick` (IMv7), not the deprecated `convert`. Always write to `/tmp/` to keep the repo clean.
 
+For programmatic pixel-level inspection (e.g. finding the widest run of a color, dumping a region as ASCII to digitise into 8x8 sprites), use Pillow via `uv run --with pillow python -c '...'`. Avoid awk for 2D pixel scans — basic awk doesn't support multi-dim arrays. Example:
+
+```bash
+uv run --with pillow python -c "
+from PIL import Image
+img = Image.open('maps/smb_1-1.png').convert('RGB')
+sky=(92,148,252); white=(252,252,252); shadow=(60,188,252); black=(0,0,0)
+for y in range(32, 56):
+    row = ''
+    for x in range(580, 640):
+        px = img.getpixel((x, y))
+        row += {sky:'.', white:'#', shadow:'o', black:'X'}.get(px, '?')
+    print(f'{y:3}: {row}')
+"
+```
+
+SMB 1-1 palette reference: sky `#5C94FC`, white `#FCFCFC`, cloud-shadow `#3CBCFC`, dark-green `#00A800`, light-green `#80D010`, darkest-green `#004400`, ground-brown `#C84C0C`.
+
 ## macOS gotchas
 
 - **Screenshot filenames contain U+202F**: macOS uses a narrow no-break space before AM/PM in screenshot names (e.g. `Screenshot 2026-04-15 at 3.03.41\u202fPM.png`). This character is invisible and breaks naive path handling. When the user pastes a screenshot path, copy it to `/tmp` first using a printf escape: `cp /path/to/Screenshot\ …$(printf '\xe2\x80\xaf')PM.png /tmp/screenshot.png`

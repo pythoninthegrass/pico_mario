@@ -524,104 +524,111 @@ SPRITES: dict[int, list[str]] = {
     # --------------------------------------------------------
     # Row 6: Decorations (IDs 96-104)
     # --------------------------------------------------------
-    # 96: cloud top-left
+    # 96: cloud left (rising slope into first hump; flat base)
+    # Classic SMB cloud style: white body, light-blue (c) shadow spots
+    # on the underside; transparent sky above.
     96: [
         "........",
-        "........",
-        "...777..",
-        "..77777.",
+        "....7777",
+        "...77777",
+        "..777777",
         ".7777777",
         "77777777",
-        "77777777",
-        "........",
+        "777cc777",
+        ".7777777",
     ],
-    # 97: cloud top-mid
+    # 97: cloud mid (flat middle section with underside shadow dots)
     97: [
         "........",
-        "..777...",
-        ".77777..",
         "77777777",
         "77777777",
         "77777777",
         "77777777",
-        "........",
+        "77777777",
+        "c7cc77cc",
+        "77777777",
     ],
-    # 98: cloud top-right
+    # 98: cloud right (falling slope from second hump; flat base)
     98: [
         "........",
-        "........",
-        ".777....",
+        "7777....",
         "77777...",
+        "777777..",
         "7777777.",
         "77777777",
-        "77777777",
-        "........",
+        "777cc777",
+        "7777777.",
     ],
-    # 99: bush left
+    # 99: bush left (same silhouette as cloud_l, bottom-aligned,
+    # green palette: b=light green main, 3=dark green shadow)
     99: [
         "........",
-        "........",
-        "........",
-        "........",
-        "...bbb..",
-        "..bbbbb.",
-        ".bbbbbbb",
-        "bbbbbbbb",
+        "....3333",
+        "...3bbbb",
+        "..3bbbbb",
+        ".3bbbbbb",
+        "3bbbbbbb",
+        "bbb33bbb",
+        "3bbbbbbb",
     ],
     # 100: bush mid
     100: [
         "........",
-        "........",
-        "........",
-        "..bbb...",
-        ".bbbbb..",
         "bbbbbbbb",
         "bbbbbbbb",
+        "bbbbbbbb",
+        "bbbbbbbb",
+        "bbbbbbbb",
+        "3b33bb33",
         "bbbbbbbb",
     ],
     # 101: bush right
     101: [
         "........",
-        "........",
-        "........",
-        "........",
-        "..bbb...",
-        ".bbbbb..",
-        "bbbbbbb.",
-        "bbbbbbbb",
+        "3333....",
+        "bbbb3...",
+        "bbbbb3..",
+        "bbbbbb3.",
+        "bbbbbbb3",
+        "bbb33bbb",
+        "bbbbbbb3",
     ],
-    # 102: hill body (solid green fill)
+    # 102: hill body (middle of a wide hill: dark outline sides
+    # optional; used for the 3-tile base. Light green fill with
+    # dark-green dotted grass-shading pattern.)
     102: [
         "bbbbbbbb",
-        "b3b3b3b3",
         "bbbbbbbb",
-        "3b3b3b3b",
+        "bbb3bbbb",
         "bbbbbbbb",
-        "b3b3b3b3",
+        "bb3bbb3b",
         "bbbbbbbb",
-        "3b3b3b3b",
+        "b3bbbb3b",
+        "bbbbbbbb",
     ],
-    # 103: hill top (rounded peak)
+    # 103: hill top (rounded peak sits atop the hill body;
+    # bottom 3 rows blend with body row 102)
     103: [
         "........",
-        "........",
-        "...bb...",
-        "..bbbb..",
-        ".bbbbbb.",
+        "...33...",
+        "..3bb3..",
+        ".3bbbb3.",
+        "3bbbbbb3",
+        "bbb3bbbb",
         "bbbbbbbb",
-        "b3b3b3b3",
-        "bbbbbbbb",
+        "b3bbbb3b",
     ],
-    # 104: hill edge / small hill
+    # 104: hill small (1-tile mound, used as standalone
+    # small hills in the far background)
     104: [
         "........",
         "........",
-        "........",
-        "........",
-        "........",
-        "...bb...",
-        "..bbbb..",
-        ".bbbbbb.",
+        "...33...",
+        "..3bb3..",
+        ".3bbbb3.",
+        "3bb3bbb3",
+        "bbbbbbbb",
+        "b3bbbb3b",
     ],
     # --------------------------------------------------------
     # Row 7: Big Mario top halves (IDs 112-115)
