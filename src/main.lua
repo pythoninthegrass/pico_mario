@@ -27,6 +27,8 @@ function _init()
   cam_x = player.x - 60
   cam_y = 0
   particles = {}
+  bumped_blocks = {}
+  pop_coins = {}
   init_enemies()
 end
 
@@ -39,6 +41,8 @@ function _update60()
     update_clear()
   end
   update_particles()
+  update_bumps()
+  update_pop_coins()
 end
 
 function _draw()
@@ -49,6 +53,8 @@ function _draw()
   -- draw map
   map(0, 0, 0, 0, map_w, map_h)
 
+  draw_bumps()
+
   -- draw player
   if state == st_play
       or (state == st_dead and death_t < 10) then
@@ -58,6 +64,7 @@ function _draw()
   end
 
   draw_enemies()
+  draw_pop_coins()
   draw_particles()
 
   -- hud (screen-fixed)

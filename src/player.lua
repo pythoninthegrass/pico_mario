@@ -49,8 +49,15 @@ function player_move(p)
   p.grounded = false
   if p.dy < 0 then
     -- head bump
-    if is_solid(p.x + 1, p.y)
-        or is_solid(p.x + p.w - 2, p.y) then
+    local hit_l = is_solid(p.x + 1, p.y)
+    local hit_r = is_solid(p.x + p.w - 2, p.y)
+    if hit_l or hit_r then
+      if hit_l then
+        bump_block(flr((p.x + 1) / 8), flr(p.y / 8))
+      end
+      if hit_r then
+        bump_block(flr((p.x + p.w - 2) / 8), flr(p.y / 8))
+      end
       p.y = flr(p.y / 8) * 8 + 8
       p.dy = 0
     end

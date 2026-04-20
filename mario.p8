@@ -134,6 +134,24 @@ function collect_coin(px, py)
   return false
 end
 
+-- bump block at tile coords
+-- ? block: release coin, convert to
+-- hit block. brick: bump animation
+-- only (small mario).
+function bump_block(mx, my)
+  local t = mget(mx, my)
+  if t == 0 then return end
+  if fget(t, f_question) then
+    if spawn_bump(mx, my, spr_hitblock) then
+      spawn_pop_coin(mx, my)
+      coins += 1
+      sfx(1)
+    end
+  elseif fget(t, f_breakable) then
+    spawn_bump(mx, my, t)
+  end
+end
+
 ----------------------------------------
 -- player object
 ----------------------------------------
@@ -185,8 +203,15 @@ function player_move(p)
   p.grounded = false
   if p.dy < 0 then
     -- head bump
-    if is_solid(p.x + 1, p.y)
-        or is_solid(p.x + p.w - 2, p.y) then
+    local hit_l = is_solid(p.x + 1, p.y)
+    local hit_r = is_solid(p.x + p.w - 2, p.y)
+    if hit_l or hit_r then
+      if hit_l then
+        bump_block(flr((p.x + 1) / 8), flr(p.y / 8))
+      end
+      if hit_r then
+        bump_block(flr((p.x + p.w - 2) / 8), flr(p.y / 8))
+      end
       p.y = flr(p.y / 8) * 8 + 8
       p.dy = 0
     end
@@ -283,6 +308,91 @@ end
 function draw_particles()
   for pt in all(particles) do
     pset(pt.x, pt.y, pt.col)
+  end
+end
+
+----------------------------------------
+-- block bumps + pop coins
+----------------------------------------
+bumped_blocks = {}
+pop_coins = {}
+
+-- add a bump entry; target is the
+-- tile id to leave behind when the
+-- bump completes (same id = no change)
+function spawn_bump(mx, my, target)
+  -- guard against re-bumping an active
+  -- block (head check hits 2 pixels)
+  for b in all(bumped_blocks) do
+    if b.mx == mx and b.my == my then
+      return false
+    end
+  end
+  add(
+    bumped_blocks, {
+      mx = mx, my = my,
+      t = 0,
+      draw = mget(mx, my),
+      target = target
+    }
+  )
+  return true
+end
+
+function update_bumps()
+  for i = #bumped_blocks, 1, -1 do
+    local b = bumped_blocks[i]
+    b.t += 1
+    if b.t >= 8 then
+      mset(b.mx, b.my, b.target)
+      del(bumped_blocks, b)
+    end
+  end
+end
+
+function draw_bumps()
+  for b in all(bumped_blocks) do
+    local off = min(b.t, 8 - b.t)
+    local x = b.mx * 8
+    local y = b.my * 8
+    -- wipe original tile with sky
+    -- then draw the bumped sprite
+    -- offset upward
+    rectfill(x, y, x + 7, y + 7, 12)
+    spr(b.draw, x, y - off)
+  end
+end
+
+function spawn_pop_coin(mx, my)
+  add(
+    pop_coins, {
+      x = mx * 8,
+      y = my * 8,
+      dy = -2.5,
+      t = 0
+    }
+  )
+end
+
+function update_pop_coins()
+  for i = #pop_coins, 1, -1 do
+    local c = pop_coins[i]
+    c.y += c.dy
+    c.dy += 0.2
+    c.t += 1
+    if c.t > 24 then
+      del(pop_coins, c)
+    end
+  end
+end
+
+function draw_pop_coins()
+  for c in all(pop_coins) do
+    local sn = spr_coin1
+    if flr(c.t / 3) % 2 == 1 then
+      sn = spr_coin2
+    end
+    spr(sn, c.x, c.y)
   end
 end
 
@@ -430,6 +540,8 @@ function _init()
   cam_x = player.x - 60
   cam_y = 0
   particles = {}
+  bumped_blocks = {}
+  pop_coins = {}
   init_enemies()
 end
 
@@ -442,6 +554,8 @@ function _update60()
     update_clear()
   end
   update_particles()
+  update_bumps()
+  update_pop_coins()
 end
 
 function _draw()
@@ -452,6 +566,8 @@ function _draw()
   -- draw map
   map(0, 0, 0, 0, map_w, map_h)
 
+  draw_bumps()
+
   -- draw player
   if state == st_play
       or (state == st_dead and death_t < 10) then
@@ -461,6 +577,7 @@ function _draw()
   end
 
   draw_enemies()
+  draw_pop_coins()
   draw_particles()
 
   -- hud (screen-fixed)

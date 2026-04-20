@@ -41,3 +41,21 @@ function collect_coin(px, py)
   return false
 end
 
+-- bump block at tile coords
+-- ? block: release coin, convert to
+-- hit block. brick: bump animation
+-- only (small mario).
+function bump_block(mx, my)
+  local t = mget(mx, my)
+  if t == 0 then return end
+  if fget(t, f_question) then
+    if spawn_bump(mx, my, spr_hitblock) then
+      spawn_pop_coin(mx, my)
+      coins += 1
+      sfx(1)
+    end
+  elseif fget(t, f_breakable) then
+    spawn_bump(mx, my, t)
+  end
+end
+

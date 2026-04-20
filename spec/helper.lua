@@ -95,6 +95,7 @@ local LUA_SOURCES = {
   'src/player.lua',
   'src/camera.lua',
   'src/particles.lua',
+  'src/blocks.lua',
   'src/enemies.lua',
   'src/main.lua',
   'src/states.lua',
