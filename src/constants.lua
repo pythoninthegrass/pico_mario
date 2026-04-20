@@ -19,6 +19,8 @@ max_enemies = 6
 squish_len = 30         -- frames a squished enemy stays visible
 stomp_bounce = -3.5     -- player dy applied on a successful stomp
 chain_scores = { 100, 200, 400, 800, 1000 }
+shell_spd = 2.0         -- moving shell velocity magnitude
+kick_grace_len = 4      -- frames after a kick where player-shell contact is ignored
 
 -- power state timers (frames)
 invuln_len = 120      -- ~2s post-shrink invulnerability

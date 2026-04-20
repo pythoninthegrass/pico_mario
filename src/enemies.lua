@@ -2,15 +2,15 @@
 -- enemies
 ----------------------------------------
 -- spawn positions sourced from
--- docs/smb_1-1_enemies.md (16 goombas;
--- koopa #5 deferred to a later task).
--- y = 13 * 8 = 104 (one tile above the
--- ground row at y = 14).
+-- docs/smb_1-1_enemies.md (16 goombas +
+-- 1 koopa). y = 13 * 8 = 104 (one tile
+-- above the ground row at y = 14).
 enemy_spawns = {
   { x = 16 * 8,  y = 13 * 8, type = 'goomba' },
   { x = 31 * 8,  y = 13 * 8, type = 'goomba' },
   { x = 40 * 8,  y = 13 * 8, type = 'goomba' },
   { x = 41 * 8,  y = 13 * 8, type = 'goomba' },
+  { x = 43 * 8,  y = 13 * 8, type = 'koopa'  },
   { x = 59 * 8,  y = 13 * 8, type = 'goomba' },
   { x = 60 * 8,  y = 13 * 8, type = 'goomba' },
   { x = 63 * 8,  y = 13 * 8, type = 'goomba' },
@@ -43,24 +43,41 @@ function make_enemy(x, y, etype)
     spr2 = s2,
     state = 'alive',    -- alive | squished | shell
     state_t = 0,
+    kick_t = 0,         -- post-kick grace so player isn't instantly hit
   }
   return e
 end
 
 -- transition an enemy into its post-stomp
 -- state.  goombas flatten and tick down
--- to removal; koopas retreat into a shell
--- that persists until the player kicks it
--- (kick mechanics deferred to a later
--- task).
+-- to removal; an alive koopa retreats
+-- into a stationary shell; a moving
+-- shell stomp stops the shell.
 function stomp_enemy(e)
-  e.dx = 0
-  e.state_t = 0
   if e.etype == 'koopa' then
-    e.state = 'shell'
+    if e.state == 'shell' and e.dx ~= 0 then
+      -- stomping a moving shell halts it
+      e.dx = 0
+      e.kick_t = 0
+    elseif e.state == 'alive' then
+      e.dx = 0
+      e.state = 'shell'
+      e.state_t = 0
+    end
   else
+    e.dx = 0
     e.state = 'squished'
+    e.state_t = 0
   end
+end
+
+-- launch a stationary shell at shell_spd
+-- in the given direction (-1 or 1), with
+-- a short grace window so the kicker is
+-- not immediately hit by the shell.
+function kick_shell(e, dir)
+  e.dx = dir * shell_spd
+  e.kick_t = kick_grace_len
 end
 
 function init_enemies()
@@ -127,12 +144,39 @@ function update_enemies()
       -- pit removal
       if e.y > map_h * 8 + 16 then
         del(enemies, e)
-      elseif e.state == 'alive' then
-        -- walk-cycle animation
-        e.frame_t += 1
-        if e.frame_t > 8 then
-          e.frame_t = 0
-          e.frame = (e.frame + 1) % 2
+      else
+        if e.state == 'alive' then
+          -- walk-cycle animation
+          e.frame_t += 1
+          if e.frame_t > 8 then
+            e.frame_t = 0
+            e.frame = (e.frame + 1) % 2
+          end
+        end
+        -- moving shell: kill alive enemies on
+        -- contact, decay kick grace timer
+        if e.state == 'shell' and e.dx ~= 0 then
+          if e.kick_t > 0 then
+            e.kick_t -= 1
+          end
+          for j = #enemies, 1, -1 do
+            local e2 = enemies[j]
+            if e2 ~= e and e2.state == 'alive'
+                and e.x < e2.x + e2.w
+                and e.x + e.w > e2.x
+                and e.y < e2.y + e2.h
+                and e.y + e.h > e2.y then
+              e2.state = 'squished'
+              e2.dx = 0
+              e2.state_t = 0
+              local idx = min(stomp_chain + 1, #chain_scores)
+              stomp_chain += 1
+              local pts = chain_scores[idx]
+              score += pts
+              spawn_score_pop(e2.x, e2.y - 4, pts)
+              sfx(6)
+            end
+          end
         end
       end
     end

@@ -4,11 +4,18 @@ describe('enemies', function()
   end)
 
   describe('enemy_spawns table', function()
-    it('contains 16 goomba spawns', function()
-      assert.are.equal(16, #enemy_spawns)
+    it('contains 16 goombas + 1 koopa', function()
+      assert.are.equal(17, #enemy_spawns)
+      local goombas, koopas = 0, 0
       for _, s in ipairs(enemy_spawns) do
-        assert.are.equal('goomba', s.type)
+        if s.type == 'goomba' then
+          goombas = goombas + 1
+        elseif s.type == 'koopa' then
+          koopas = koopas + 1
+        end
       end
+      assert.are.equal(16, goombas)
+      assert.are.equal(1, koopas)
     end)
 
     it('places all spawns on row 13 (above ground)', function()

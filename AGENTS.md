@@ -58,6 +58,11 @@ uv run scripts/generate_cart.py --no-assemble
 # Assemble Lua only (skip sprite patching)
 uv run scripts/generate_cart.py --no-sprites
 
+# Count PICO-8 tokens in mario.p8 (hard limit: 8192)
+# Approximates PICO-8's counter: brackets/strings = 1 each;
+# commas, periods, local, end, semicolons, comments are free.
+uv run scripts/count_tokens.py
+
 # Lint/format the Python script
 ruff format scripts/
 ruff check scripts/

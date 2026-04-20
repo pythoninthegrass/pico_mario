@@ -144,21 +144,52 @@ function check_enemy_hits(p)
         and p.x + p.w - 1 > e.x
         and p.y < e.y + e.h
         and p.y + p.h > e.y then
-      -- stomp: falling AND feet near top
-      if p.dy > 0
-          and p.y + p.h - e.y <= 6 then
-        stomp_enemy(e)
-        p.dy = stomp_bounce
-        p.grounded = false
-        local idx = min(stomp_chain + 1, #chain_scores)
-        stomp_chain += 1
-        local pts = chain_scores[idx]
-        score += pts
-        spawn_score_pop(e.x, e.y - 4, pts)
-        sfx(6)
-        stomped = true
+      local stomp = p.dy > 0
+          and p.y + p.h - e.y <= 6
+      local shell_still = e.state == 'shell' and e.dx == 0
+      local shell_moving = e.state == 'shell' and e.dx ~= 0
+      if stomp then
+        if shell_still then
+          -- stomp on parked shell kicks it
+          kick_shell(e, p.facing)
+          p.dy = stomp_bounce
+          p.grounded = false
+          sfx(6)
+        elseif shell_moving then
+          -- stomp halts a moving shell
+          e.dx = 0
+          e.kick_t = 0
+          p.dy = stomp_bounce
+          p.grounded = false
+          sfx(6)
+        else
+          -- alive goomba/koopa stomp
+          stomp_enemy(e)
+          p.dy = stomp_bounce
+          p.grounded = false
+          local idx = min(stomp_chain + 1, #chain_scores)
+          stomp_chain += 1
+          local pts = chain_scores[idx]
+          score += pts
+          spawn_score_pop(e.x, e.y - 4, pts)
+          sfx(6)
+          stomped = true
+        end
       else
-        return "hit"
+        if shell_still then
+          -- side contact kicks the shell
+          -- away from the player
+          local dir = 1
+          if p.x + p.w / 2 >= e.x + e.w / 2 then
+            dir = -1
+          end
+          kick_shell(e, dir)
+          sfx(6)
+        elseif shell_moving and e.kick_t > 0 then
+          -- freshly-kicked shell: ignore
+        else
+          return "hit"
+        end
       end
     end
   end
