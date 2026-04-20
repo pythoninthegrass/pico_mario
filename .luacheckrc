@@ -13,6 +13,8 @@ operators = {"+=", "-=", "*=", "/=", "%=", "^=", "..="}
 globals = {
   -- constants.lua
   "grav", "max_fall", "jump_str", "move_spd", "run_spd", "run_jump_str", "coyote",
+  "ground_accel", "air_accel", "ground_friction", "skid_decel",
+  "spawn_ahead",
   "enemy_spd", "max_enemies", "squish_len", "stomp_bounce", "chain_scores",
   "shell_spd", "kick_grace_len",
   "invuln_len", "transform_len",
@@ -47,6 +49,7 @@ globals = {
 
   -- player.lua
   "make_player", "player_move", "player_check_tiles",
+  "apply_horiz_physics",
   "grow_player", "shrink_player", "damage_player", "star_player",
 
   -- camera.lua

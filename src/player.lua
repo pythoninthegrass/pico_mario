@@ -14,6 +14,7 @@ function make_player(sx, sy)
     spawn_y = sy,
     coyote_t = 0,
     running = false,
+    skidding = false,
     power = 0,        -- 0=small, 1=big, 2=fire (reserved)
     invuln_t = 0,     -- post-shrink invulnerability timer
     transform_t = 0,  -- grow/shrink animation timer
@@ -70,6 +71,66 @@ function star_player(p)
   p.invince_t = invince_len
   sfx(7)
   music(1)
+end
+
+-- apply acceleration-based horizontal
+-- physics.  input_dir is -1/0/1, running
+-- is true when x button held.  on ground
+-- we accelerate toward the target speed
+-- (walk or run cap), apply friction when
+-- no input, and skid-decel when the input
+-- reverses against current velocity.  in
+-- air we use a reduced accel and no
+-- friction, so players commit to the
+-- direction they jumped in.
+function apply_horiz_physics(p, input_dir, running)
+  if input_dir ~= 0 then p.facing = input_dir end
+
+  local cap = move_spd
+  if running then cap = run_spd end
+  local accel = ground_accel
+  if not p.grounded then accel = air_accel end
+
+  p.skidding = false
+
+  if input_dir == 0 then
+    -- no input: friction on ground, coast in air
+    if p.grounded then
+      if p.dx > 0 then
+        p.dx -= ground_friction
+        if p.dx < 0 then p.dx = 0 end
+      elseif p.dx < 0 then
+        p.dx += ground_friction
+        if p.dx > 0 then p.dx = 0 end
+      end
+    end
+  elseif input_dir > 0 then
+    if p.dx < 0 and p.grounded then
+      -- reversing while moving left: skid
+      p.skidding = true
+      p.dx += skid_decel
+      if p.dx > 0 then p.dx = 0 end
+    elseif p.dx < cap then
+      p.dx += accel
+      if p.dx > cap then p.dx = cap end
+    elseif p.dx > cap and p.grounded then
+      -- above walk cap without running: ease down
+      p.dx -= ground_friction
+      if p.dx < cap then p.dx = cap end
+    end
+  else -- input_dir < 0
+    if p.dx > 0 and p.grounded then
+      p.skidding = true
+      p.dx -= skid_decel
+      if p.dx < 0 then p.dx = 0 end
+    elseif p.dx > -cap then
+      p.dx -= accel
+      if p.dx < -cap then p.dx = -cap end
+    elseif p.dx < -cap and p.grounded then
+      p.dx += ground_friction
+      if p.dx > -cap then p.dx = -cap end
+    end
+  end
 end
 
 -- move player with collision resolve

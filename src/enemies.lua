@@ -101,7 +101,7 @@ end
 function spawn_enemies()
   while next_spawn <= #enemy_spawns
       and #enemies < max_enemies
-      and enemy_spawns[next_spawn].x < cam_x + 144 do
+      and enemy_spawns[next_spawn].x < cam_x + spawn_ahead do
     local s = enemy_spawns[next_spawn]
     add(enemies, make_enemy(s.x, s.y, s.type))
     next_spawn += 1

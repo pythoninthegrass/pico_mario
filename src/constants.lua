@@ -13,6 +13,16 @@ run_spd = 2.0
 run_jump_str = -6.0
 coyote = 5 -- frames of jump grace after leaving edge
 
+-- horizontal acceleration model
+ground_accel = 0.14    -- px/frame^2 toward target on ground
+air_accel = 0.07       -- px/frame^2 toward target in air
+ground_friction = 0.21 -- px/frame^2 decel when no input (ground)
+skid_decel = 0.29      -- px/frame^2 decel when reversing direction
+
+-- enemy spawning: spawn enemies this many pixels ahead of camera
+-- (screen is 128px; 160 gives 32px / 4 tiles of lead time)
+spawn_ahead = 160
+
 -- enemies
 enemy_spd = 0.5
 max_enemies = 6

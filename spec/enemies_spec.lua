@@ -68,18 +68,18 @@ describe('enemies', function()
       init_enemies()
       _G.cam_x = 0
       spawn_enemies()
-      -- enemy_spawns[1].x = 16*8 = 128, threshold 0+144 = 144, so spawns
+      -- enemy_spawns[1].x = 16*8 = 128, threshold 0+spawn_ahead, so spawns
       assert.are.equal(1, #enemies)
       assert.are.equal(2, next_spawn)
     end)
 
-    it('spawns enemies whose x is below cam_x + 144', function()
+    it('spawns enemies whose x is below cam_x + spawn_ahead', function()
       init_enemies()
       _G.cam_x = 240
       spawn_enemies()
       local expected = 0
       for _, s in ipairs(enemy_spawns) do
-        if s.x < 240 + 144 then
+        if s.x < 240 + spawn_ahead then
           expected = expected + 1
         end
       end

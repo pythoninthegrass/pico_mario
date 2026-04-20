@@ -20,24 +20,17 @@ function update_play()
 
   -- run state (x button)
   p.running = btn(5)
-  local spd = move_spd
-  if p.running then spd = run_spd end
 
   -- horizontal input (suspended during
   -- the grow/shrink animation so the
   -- player briefly pauses as they
   -- transform)
-  p.dx = 0
+  local input_dir = 0
   if p.transform_t == 0 then
-    if btn(0) then
-      p.dx = -spd
-      p.facing = -1
-    end
-    if btn(1) then
-      p.dx = spd
-      p.facing = 1
-    end
+    if btn(0) then input_dir = -1 end
+    if btn(1) then input_dir = 1 end
   end
+  apply_horiz_physics(p, input_dir, p.running)
 
   -- coyote time: track grace frames
   -- after walking off an edge

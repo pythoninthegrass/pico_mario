@@ -16,6 +16,16 @@ run_spd = 2.0
 run_jump_str = -6.0
 coyote = 5 -- frames of jump grace after leaving edge
 
+-- horizontal acceleration model
+ground_accel = 0.14    -- px/frame^2 toward target on ground
+air_accel = 0.07       -- px/frame^2 toward target in air
+ground_friction = 0.21 -- px/frame^2 decel when no input (ground)
+skid_decel = 0.29      -- px/frame^2 decel when reversing direction
+
+-- enemy spawning: spawn enemies this many pixels ahead of camera
+-- (screen is 128px; 160 gives 32px / 4 tiles of lead time)
+spawn_ahead = 160
+
 -- enemies
 enemy_spd = 0.5
 max_enemies = 6
@@ -219,6 +229,7 @@ function make_player(sx, sy)
     spawn_y = sy,
     coyote_t = 0,
     running = false,
+    skidding = false,
     power = 0,        -- 0=small, 1=big, 2=fire (reserved)
     invuln_t = 0,     -- post-shrink invulnerability timer
     transform_t = 0,  -- grow/shrink animation timer
@@ -275,6 +286,66 @@ function star_player(p)
   p.invince_t = invince_len
   sfx(7)
   music(1)
+end
+
+-- apply acceleration-based horizontal
+-- physics.  input_dir is -1/0/1, running
+-- is true when x button held.  on ground
+-- we accelerate toward the target speed
+-- (walk or run cap), apply friction when
+-- no input, and skid-decel when the input
+-- reverses against current velocity.  in
+-- air we use a reduced accel and no
+-- friction, so players commit to the
+-- direction they jumped in.
+function apply_horiz_physics(p, input_dir, running)
+  if input_dir ~= 0 then p.facing = input_dir end
+
+  local cap = move_spd
+  if running then cap = run_spd end
+  local accel = ground_accel
+  if not p.grounded then accel = air_accel end
+
+  p.skidding = false
+
+  if input_dir == 0 then
+    -- no input: friction on ground, coast in air
+    if p.grounded then
+      if p.dx > 0 then
+        p.dx -= ground_friction
+        if p.dx < 0 then p.dx = 0 end
+      elseif p.dx < 0 then
+        p.dx += ground_friction
+        if p.dx > 0 then p.dx = 0 end
+      end
+    end
+  elseif input_dir > 0 then
+    if p.dx < 0 and p.grounded then
+      -- reversing while moving left: skid
+      p.skidding = true
+      p.dx += skid_decel
+      if p.dx > 0 then p.dx = 0 end
+    elseif p.dx < cap then
+      p.dx += accel
+      if p.dx > cap then p.dx = cap end
+    elseif p.dx > cap and p.grounded then
+      -- above walk cap without running: ease down
+      p.dx -= ground_friction
+      if p.dx < cap then p.dx = cap end
+    end
+  else -- input_dir < 0
+    if p.dx > 0 and p.grounded then
+      p.skidding = true
+      p.dx -= skid_decel
+      if p.dx < 0 then p.dx = 0 end
+    elseif p.dx > -cap then
+      p.dx -= accel
+      if p.dx < -cap then p.dx = -cap end
+    elseif p.dx < -cap and p.grounded then
+      p.dx += ground_friction
+      if p.dx > -cap then p.dx = -cap end
+    end
+  end
 end
 
 -- move player with collision resolve
@@ -878,7 +949,7 @@ end
 function spawn_enemies()
   while next_spawn <= #enemy_spawns
       and #enemies < max_enemies
-      and enemy_spawns[next_spawn].x < cam_x + 144 do
+      and enemy_spawns[next_spawn].x < cam_x + spawn_ahead do
     local s = enemy_spawns[next_spawn]
     add(enemies, make_enemy(s.x, s.y, s.type))
     next_spawn += 1
@@ -1161,24 +1232,17 @@ function update_play()
 
   -- run state (x button)
   p.running = btn(5)
-  local spd = move_spd
-  if p.running then spd = run_spd end
 
   -- horizontal input (suspended during
   -- the grow/shrink animation so the
   -- player briefly pauses as they
   -- transform)
-  p.dx = 0
+  local input_dir = 0
   if p.transform_t == 0 then
-    if btn(0) then
-      p.dx = -spd
-      p.facing = -1
-    end
-    if btn(1) then
-      p.dx = spd
-      p.facing = 1
-    end
+    if btn(0) then input_dir = -1 end
+    if btn(1) then input_dir = 1 end
   end
+  apply_horiz_physics(p, input_dir, p.running)
 
   -- coyote time: track grace frames
   -- after walking off an edge
