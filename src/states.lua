@@ -104,6 +104,66 @@ function update_play()
 
   spawn_enemies()
   update_enemies()
+
+  -- player-enemy collision.  stomp takes
+  -- precedence over side-hits so adjacent
+  -- enemies don't kill a falling player.
+  if state == st_play then
+    local hit = check_enemy_hits(p)
+    if hit == "hit" then
+      if damage_player(p) == "dead" then
+        state = st_dead
+        death_t = 0
+        spawn_particles(p.x + 3, p.y + 4, 8, 20)
+        sfx(2)
+      end
+    end
+  end
+
+  -- chain resets once the player lands
+  if p.grounded then stomp_chain = 0 end
+end
+
+-- aabb overlap + stomp/side classifier.
+-- returns "stomp" when a stomp happened
+-- (one or more enemies), "hit" when the
+-- player touched an alive enemy from the
+-- side or below, and "ok" otherwise.
+-- invuln skips both branches so shrink
+-- i-frames behave as in SMB.
+function check_enemy_hits(p)
+  if p.invuln_t > 0 then return "ok" end
+
+  local stomped = false
+  for i = #enemies, 1, -1 do
+    local e = enemies[i]
+    local hittable = e.state == 'alive'
+        or e.state == 'shell'
+    if hittable
+        and p.x + 1 < e.x + e.w
+        and p.x + p.w - 1 > e.x
+        and p.y < e.y + e.h
+        and p.y + p.h > e.y then
+      -- stomp: falling AND feet near top
+      if p.dy > 0
+          and p.y + p.h - e.y <= 6 then
+        stomp_enemy(e)
+        p.dy = stomp_bounce
+        p.grounded = false
+        local idx = min(stomp_chain + 1, #chain_scores)
+        stomp_chain += 1
+        local pts = chain_scores[idx]
+        score += pts
+        spawn_score_pop(e.x, e.y - 4, pts)
+        sfx(6)
+        stomped = true
+      else
+        return "hit"
+      end
+    end
+  end
+  if stomped then return "stomp" end
+  return "ok"
 end
 
 function get_player_spr(p)

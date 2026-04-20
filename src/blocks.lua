@@ -84,6 +84,32 @@ function draw_pop_coins()
 end
 
 ----------------------------------------
+-- score popups: small floating number
+-- rendered above a stomped enemy or a
+-- bumped coin block.
+----------------------------------------
+score_pops = {}
+
+function spawn_score_pop(x, y, pts)
+  add(score_pops, { x = x, y = y, pts = pts, t = 0 })
+end
+
+function update_score_pops()
+  for i = #score_pops, 1, -1 do
+    local s = score_pops[i]
+    s.y -= 0.5
+    s.t += 1
+    if s.t > 30 then del(score_pops, s) end
+  end
+end
+
+function draw_score_pops()
+  for s in all(score_pops) do
+    print(s.pts, s.x, s.y, 7)
+  end
+end
+
+----------------------------------------
 -- hidden blocks: invisible until hit
 -- from below, then revealed as solid
 -- hit block.  content is "coin" or

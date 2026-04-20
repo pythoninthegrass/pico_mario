@@ -19,6 +19,9 @@ coyote = 5 -- frames of jump grace after leaving edge
 -- enemies
 enemy_spd = 0.5
 max_enemies = 6
+squish_len = 30         -- frames a squished enemy stays visible
+stomp_bounce = -3.5     -- player dy applied on a successful stomp
+chain_scores = { 100, 200, 400, 800, 1000 }
 
 -- power state timers (frames)
 invuln_len = 120      -- ~2s post-shrink invulnerability
@@ -490,6 +493,32 @@ function draw_pop_coins()
 end
 
 ----------------------------------------
+-- score popups: small floating number
+-- rendered above a stomped enemy or a
+-- bumped coin block.
+----------------------------------------
+score_pops = {}
+
+function spawn_score_pop(x, y, pts)
+  add(score_pops, { x = x, y = y, pts = pts, t = 0 })
+end
+
+function update_score_pops()
+  for i = #score_pops, 1, -1 do
+    local s = score_pops[i]
+    s.y -= 0.5
+    s.t += 1
+    if s.t > 30 then del(score_pops, s) end
+  end
+end
+
+function draw_score_pops()
+  for s in all(score_pops) do
+    print(s.pts, s.x, s.y, 7)
+  end
+end
+
+----------------------------------------
 -- hidden blocks: invisible until hit
 -- from below, then revealed as solid
 -- hit block.  content is "coin" or
@@ -741,16 +770,38 @@ enemies = {}
 next_spawn = 1
 
 function make_enemy(x, y, etype)
+  local s1, s2 = spr_goomba1, spr_goomba2
+  if etype == 'koopa' then
+    s1, s2 = spr_koopa1, spr_koopa2
+  end
   local e = {
     x = x, y = y,
     dx = -enemy_spd, dy = 0,
     w = 6, h = 8,
     etype = etype,
     frame = 0, frame_t = 0,
-    spr1 = spr_goomba1,
-    spr2 = spr_goomba2,
+    spr1 = s1,
+    spr2 = s2,
+    state = 'alive',    -- alive | squished | shell
+    state_t = 0,
   }
   return e
+end
+
+-- transition an enemy into its post-stomp
+-- state.  goombas flatten and tick down
+-- to removal; koopas retreat into a shell
+-- that persists until the player kicks it
+-- (kick mechanics deferred to a later
+-- task).
+function stomp_enemy(e)
+  e.dx = 0
+  e.state_t = 0
+  if e.etype == 'koopa' then
+    e.state = 'shell'
+  else
+    e.state = 'squished'
+  end
 end
 
 function init_enemies()
@@ -774,45 +825,56 @@ function update_enemies()
   for i = #enemies, 1, -1 do
     local e = enemies[i]
 
-    -- horizontal: walk + reverse on wall
-    e.x += e.dx
-    if e.dx < 0 then
-      if is_solid(e.x, e.y + 1)
-          or is_solid(e.x, e.y + e.h - 1) then
-        e.x = flr(e.x / 8) * 8 + 8
-        e.dx = -e.dx
+    if e.state == 'squished' then
+      -- flat goomba pauses, then vanishes
+      e.state_t += 1
+      if e.state_t >= squish_len then
+        del(enemies, e)
       end
-    elseif e.dx > 0 then
-      if is_solid(e.x + e.w - 1, e.y + 1)
-          or is_solid(e.x + e.w - 1, e.y + e.h - 1) then
-        e.x = flr((e.x + e.w - 1) / 8) * 8 - e.w
-        e.dx = -e.dx
-      end
-    end
-
-    -- gravity
-    e.dy += grav
-    if e.dy > max_fall then e.dy = max_fall end
-
-    -- vertical: fall + land
-    e.y += e.dy
-    if e.dy >= 0 then
-      if is_solid(e.x + 1, e.y + e.h)
-          or is_solid(e.x + e.w - 2, e.y + e.h) then
-        e.y = flr((e.y + e.h) / 8) * 8 - e.h
-        e.dy = 0
-      end
-    end
-
-    -- pit removal
-    if e.y > map_h * 8 + 16 then
-      del(enemies, e)
     else
-      -- walk-cycle animation
-      e.frame_t += 1
-      if e.frame_t > 8 then
-        e.frame_t = 0
-        e.frame = (e.frame + 1) % 2
+      -- alive + shell share walking physics;
+      -- a shell's dx was zeroed in stomp_enemy
+      -- so it just sits (kick is deferred).
+      -- horizontal: walk + reverse on wall
+      e.x += e.dx
+      if e.dx < 0 then
+        if is_solid(e.x, e.y + 1)
+            or is_solid(e.x, e.y + e.h - 1) then
+          e.x = flr(e.x / 8) * 8 + 8
+          e.dx = -e.dx
+        end
+      elseif e.dx > 0 then
+        if is_solid(e.x + e.w - 1, e.y + 1)
+            or is_solid(e.x + e.w - 1, e.y + e.h - 1) then
+          e.x = flr((e.x + e.w - 1) / 8) * 8 - e.w
+          e.dx = -e.dx
+        end
+      end
+
+      -- gravity
+      e.dy += grav
+      if e.dy > max_fall then e.dy = max_fall end
+
+      -- vertical: fall + land
+      e.y += e.dy
+      if e.dy >= 0 then
+        if is_solid(e.x + 1, e.y + e.h)
+            or is_solid(e.x + e.w - 2, e.y + e.h) then
+          e.y = flr((e.y + e.h) / 8) * 8 - e.h
+          e.dy = 0
+        end
+      end
+
+      -- pit removal
+      if e.y > map_h * 8 + 16 then
+        del(enemies, e)
+      elseif e.state == 'alive' then
+        -- walk-cycle animation
+        e.frame_t += 1
+        if e.frame_t > 8 then
+          e.frame_t = 0
+          e.frame = (e.frame + 1) % 2
+        end
       end
     end
   end
@@ -821,7 +883,13 @@ end
 function draw_enemies()
   for e in all(enemies) do
     local sn = e.spr1
-    if e.frame == 1 then sn = e.spr2 end
+    if e.state == 'squished' then
+      sn = spr_goomba_flat
+    elseif e.state == 'shell' then
+      sn = spr_koopa_shell
+    elseif e.frame == 1 then
+      sn = e.spr2
+    end
     spr(sn, e.x, e.y, 1, 1, e.dx > 0)
   end
 end
@@ -831,6 +899,9 @@ end
 function _init()
   state = st_play
   coins = 0
+  score = 0
+  stomp_chain = 0
+  score_pops = {}
   lives = lives or 3
   death_t = 0
   clear_t = 0
@@ -894,6 +965,7 @@ function _update60()
   update_particles()
   update_bumps()
   update_pop_coins()
+  update_score_pops()
   update_multi_coin_bricks()
   update_items()
 end
@@ -926,6 +998,7 @@ function _draw()
   draw_enemies()
   draw_items()
   draw_pop_coins()
+  draw_score_pops()
   draw_particles()
 
   -- hud (screen-fixed)
@@ -933,6 +1006,7 @@ function _draw()
   -- coin icon + count
   spr(spr_coin1, 2, 2)
   print(coins, 12, 4, 7)
+  print(score, 90, 4, 7)
 
   if state == st_dead and death_t > 20 then
     rectfill(20, 54, 108, 68, 1)
@@ -1054,6 +1128,66 @@ function update_play()
 
   spawn_enemies()
   update_enemies()
+
+  -- player-enemy collision.  stomp takes
+  -- precedence over side-hits so adjacent
+  -- enemies don't kill a falling player.
+  if state == st_play then
+    local hit = check_enemy_hits(p)
+    if hit == "hit" then
+      if damage_player(p) == "dead" then
+        state = st_dead
+        death_t = 0
+        spawn_particles(p.x + 3, p.y + 4, 8, 20)
+        sfx(2)
+      end
+    end
+  end
+
+  -- chain resets once the player lands
+  if p.grounded then stomp_chain = 0 end
+end
+
+-- aabb overlap + stomp/side classifier.
+-- returns "stomp" when a stomp happened
+-- (one or more enemies), "hit" when the
+-- player touched an alive enemy from the
+-- side or below, and "ok" otherwise.
+-- invuln skips both branches so shrink
+-- i-frames behave as in SMB.
+function check_enemy_hits(p)
+  if p.invuln_t > 0 then return "ok" end
+
+  local stomped = false
+  for i = #enemies, 1, -1 do
+    local e = enemies[i]
+    local hittable = e.state == 'alive'
+        or e.state == 'shell'
+    if hittable
+        and p.x + 1 < e.x + e.w
+        and p.x + p.w - 1 > e.x
+        and p.y < e.y + e.h
+        and p.y + p.h > e.y then
+      -- stomp: falling AND feet near top
+      if p.dy > 0
+          and p.y + p.h - e.y <= 6 then
+        stomp_enemy(e)
+        p.dy = stomp_bounce
+        p.grounded = false
+        local idx = min(stomp_chain + 1, #chain_scores)
+        stomp_chain += 1
+        local pts = chain_scores[idx]
+        score += pts
+        spawn_score_pop(e.x, e.y - 4, pts)
+        sfx(6)
+        stomped = true
+      else
+        return "hit"
+      end
+    end
+  end
+  if stomped then return "stomp" end
+  return "ok"
 end
 
 function get_player_spr(p)

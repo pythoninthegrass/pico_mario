@@ -4,6 +4,9 @@
 function _init()
   state = st_play
   coins = 0
+  score = 0
+  stomp_chain = 0
+  score_pops = {}
   lives = lives or 3
   death_t = 0
   clear_t = 0
@@ -67,6 +70,7 @@ function _update60()
   update_particles()
   update_bumps()
   update_pop_coins()
+  update_score_pops()
   update_multi_coin_bricks()
   update_items()
 end
@@ -99,6 +103,7 @@ function _draw()
   draw_enemies()
   draw_items()
   draw_pop_coins()
+  draw_score_pops()
   draw_particles()
 
   -- hud (screen-fixed)
@@ -106,6 +111,7 @@ function _draw()
   -- coin icon + count
   spr(spr_coin1, 2, 2)
   print(coins, 12, 4, 7)
+  print(score, 90, 4, 7)
 
   if state == st_dead and death_t > 20 then
     rectfill(20, 54, 108, 68, 1)

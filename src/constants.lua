@@ -16,6 +16,9 @@ coyote = 5 -- frames of jump grace after leaving edge
 -- enemies
 enemy_spd = 0.5
 max_enemies = 6
+squish_len = 30         -- frames a squished enemy stays visible
+stomp_bounce = -3.5     -- player dy applied on a successful stomp
+chain_scores = { 100, 200, 400, 800, 1000 }
 
 -- power state timers (frames)
 invuln_len = 120      -- ~2s post-shrink invulnerability

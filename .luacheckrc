@@ -13,7 +13,7 @@ operators = {"+=", "-=", "*=", "/=", "%=", "^=", "..="}
 globals = {
   -- constants.lua
   "grav", "max_fall", "jump_str", "move_spd", "run_spd", "run_jump_str", "coyote",
-  "enemy_spd", "max_enemies",
+  "enemy_spd", "max_enemies", "squish_len", "stomp_bounce", "chain_scores",
   "invuln_len", "transform_len",
   "map_w", "map_h",
   "f_solid", "f_hazard", "f_coin", "f_goal", "f_breakable", "f_question", "f_pipe",
@@ -41,6 +41,7 @@ globals = {
   "spawn_pop_coin", "update_pop_coins", "draw_pop_coins",
   "register_hidden", "find_hidden", "reveal_hidden",
   "register_multi_coin", "find_multi_coin", "update_multi_coin_bricks",
+  "score_pops", "spawn_score_pop", "update_score_pops", "draw_score_pops",
 
   -- player.lua
   "make_player", "player_move", "player_check_tiles",
@@ -63,9 +64,11 @@ globals = {
 
   -- states.lua
   "update_play", "get_player_spr", "update_dead", "update_clear",
+  "check_enemy_hits", "stomp_enemy",
 
   -- main.lua shared state
   "player", "cam_x", "cam_y", "state", "coins", "death_t", "clear_t", "lives",
+  "score", "stomp_chain",
   "register_specials",
 }
 

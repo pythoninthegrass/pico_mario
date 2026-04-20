@@ -29,16 +29,38 @@ enemies = {}
 next_spawn = 1
 
 function make_enemy(x, y, etype)
+  local s1, s2 = spr_goomba1, spr_goomba2
+  if etype == 'koopa' then
+    s1, s2 = spr_koopa1, spr_koopa2
+  end
   local e = {
     x = x, y = y,
     dx = -enemy_spd, dy = 0,
     w = 6, h = 8,
     etype = etype,
     frame = 0, frame_t = 0,
-    spr1 = spr_goomba1,
-    spr2 = spr_goomba2,
+    spr1 = s1,
+    spr2 = s2,
+    state = 'alive',    -- alive | squished | shell
+    state_t = 0,
   }
   return e
+end
+
+-- transition an enemy into its post-stomp
+-- state.  goombas flatten and tick down
+-- to removal; koopas retreat into a shell
+-- that persists until the player kicks it
+-- (kick mechanics deferred to a later
+-- task).
+function stomp_enemy(e)
+  e.dx = 0
+  e.state_t = 0
+  if e.etype == 'koopa' then
+    e.state = 'shell'
+  else
+    e.state = 'squished'
+  end
 end
 
 function init_enemies()
@@ -62,45 +84,56 @@ function update_enemies()
   for i = #enemies, 1, -1 do
     local e = enemies[i]
 
-    -- horizontal: walk + reverse on wall
-    e.x += e.dx
-    if e.dx < 0 then
-      if is_solid(e.x, e.y + 1)
-          or is_solid(e.x, e.y + e.h - 1) then
-        e.x = flr(e.x / 8) * 8 + 8
-        e.dx = -e.dx
+    if e.state == 'squished' then
+      -- flat goomba pauses, then vanishes
+      e.state_t += 1
+      if e.state_t >= squish_len then
+        del(enemies, e)
       end
-    elseif e.dx > 0 then
-      if is_solid(e.x + e.w - 1, e.y + 1)
-          or is_solid(e.x + e.w - 1, e.y + e.h - 1) then
-        e.x = flr((e.x + e.w - 1) / 8) * 8 - e.w
-        e.dx = -e.dx
-      end
-    end
-
-    -- gravity
-    e.dy += grav
-    if e.dy > max_fall then e.dy = max_fall end
-
-    -- vertical: fall + land
-    e.y += e.dy
-    if e.dy >= 0 then
-      if is_solid(e.x + 1, e.y + e.h)
-          or is_solid(e.x + e.w - 2, e.y + e.h) then
-        e.y = flr((e.y + e.h) / 8) * 8 - e.h
-        e.dy = 0
-      end
-    end
-
-    -- pit removal
-    if e.y > map_h * 8 + 16 then
-      del(enemies, e)
     else
-      -- walk-cycle animation
-      e.frame_t += 1
-      if e.frame_t > 8 then
-        e.frame_t = 0
-        e.frame = (e.frame + 1) % 2
+      -- alive + shell share walking physics;
+      -- a shell's dx was zeroed in stomp_enemy
+      -- so it just sits (kick is deferred).
+      -- horizontal: walk + reverse on wall
+      e.x += e.dx
+      if e.dx < 0 then
+        if is_solid(e.x, e.y + 1)
+            or is_solid(e.x, e.y + e.h - 1) then
+          e.x = flr(e.x / 8) * 8 + 8
+          e.dx = -e.dx
+        end
+      elseif e.dx > 0 then
+        if is_solid(e.x + e.w - 1, e.y + 1)
+            or is_solid(e.x + e.w - 1, e.y + e.h - 1) then
+          e.x = flr((e.x + e.w - 1) / 8) * 8 - e.w
+          e.dx = -e.dx
+        end
+      end
+
+      -- gravity
+      e.dy += grav
+      if e.dy > max_fall then e.dy = max_fall end
+
+      -- vertical: fall + land
+      e.y += e.dy
+      if e.dy >= 0 then
+        if is_solid(e.x + 1, e.y + e.h)
+            or is_solid(e.x + e.w - 2, e.y + e.h) then
+          e.y = flr((e.y + e.h) / 8) * 8 - e.h
+          e.dy = 0
+        end
+      end
+
+      -- pit removal
+      if e.y > map_h * 8 + 16 then
+        del(enemies, e)
+      elseif e.state == 'alive' then
+        -- walk-cycle animation
+        e.frame_t += 1
+        if e.frame_t > 8 then
+          e.frame_t = 0
+          e.frame = (e.frame + 1) % 2
+        end
       end
     end
   end
@@ -109,7 +142,13 @@ end
 function draw_enemies()
   for e in all(enemies) do
     local sn = e.spr1
-    if e.frame == 1 then sn = e.spr2 end
+    if e.state == 'squished' then
+      sn = spr_goomba_flat
+    elseif e.state == 'shell' then
+      sn = spr_koopa_shell
+    elseif e.frame == 1 then
+      sn = e.spr2
+    end
     spr(sn, e.x, e.y, 1, 1, e.dx > 0)
   end
 end
