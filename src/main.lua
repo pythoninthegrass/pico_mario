@@ -10,6 +10,9 @@ function _init()
   lives = lives or 3
   death_t = 0
   clear_t = 0
+  timer = timer_start
+  timer_tick = 0
+  timer_warned = false
 
   -- reload map from rom so coins
   -- and spawn marker are restored
@@ -119,17 +122,31 @@ function _draw()
 
   -- hud (screen-fixed)
   camera(0, 0)
-  -- coin icon + count
-  spr(spr_coin1, 2, 2)
-  print(coins, 12, 4, 7)
-  print(score, 90, 4, 7)
+  rectfill(0, 0, 127, 15, 0)
+  -- row 1: labels
+  print("mario", 2, 2, 7)
+  spr(spr_coin1, 42, 1)
+  print("x"..zpad(coins, 2), 50, 2, 7)
+  print("world", 72, 2, 7)
+  print("time", 104, 2, 7)
+  -- row 2: values
+  print(zpad(score, 6), 2, 9, 7)
+  print("x"..lives, 30, 9, 7)
+  print("1-1", 78, 9, 7)
+  print(zpad(timer, 3), 108, 9, 7)
 
   if state == st_dead and death_t > 20 then
-    rectfill(20, 54, 108, 68, 1)
-    print("press \x97/\x8e to retry", 24, 58, 7)
+    if lives <= 0 then
+      rectfill(20, 50, 108, 72, 1)
+      print("game over", 42, 54, 8)
+      print("press \x97/\x8e", 42, 64, 7)
+    else
+      rectfill(20, 54, 108, 68, 1)
+      print("press \x97/\x8e to retry", 24, 58, 7)
+    end
   end
 
-  if state == st_clear then
+  if state == st_clear and timer == 0 then
     rectfill(20, 44, 108, 72, 1)
     print("level clear!", 36, 48, 10)
     if clear_t > 30 then

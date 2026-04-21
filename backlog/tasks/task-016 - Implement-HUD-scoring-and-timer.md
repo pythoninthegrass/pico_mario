@@ -1,10 +1,10 @@
 ---
 id: TASK-016
 title: 'Implement HUD, scoring, and timer'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-04-15 20:49'
-updated_date: '2026-04-20 21:58'
+updated_date: '2026-04-21 04:49'
 labels: []
 milestone: m-4
 dependencies:
@@ -29,19 +29,19 @@ Lives: start at 3. Lose one on death. Game over at 0. 1-up mushroom adds one.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Score displayed at top-left of screen
-- [ ] #2 Coin counter with coin icon displayed
-- [ ] #3 Timer counts down from 400 (1 tick per ~0.4 seconds to match NES pace)
-- [ ] #4 Lives counter displayed
-- [ ] #5 WORLD 1-1 label displayed
-- [ ] #6 HUD is screen-fixed (does not scroll with camera)
-- [ ] #7 Score increases on coin collect (+200), enemy stomp (+100-1000), block coin (+200)
+- [x] #1 Score displayed at top-left of screen
+- [x] #2 Coin counter with coin icon displayed
+- [x] #3 Timer counts down from 400 (1 tick per ~0.4 seconds to match NES pace)
+- [x] #4 Lives counter displayed
+- [x] #5 WORLD 1-1 label displayed
+- [x] #6 HUD is screen-fixed (does not scroll with camera)
+- [x] #7 Score increases on coin collect (+200), enemy stomp (+100-1000), block coin (+200)
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 Cart loads in PICO-8 without errors
+- [x] #1 Cart loads in PICO-8 without errors
 - [ ] #2 Play-test affected functionality
-- [ ] #3 Copy cart to iCloud: cp mario.p8 ~/iCloud/pico-8/carts/marioish/mario.p8
-- [ ] #4 Token count verified under 8192 limit
+- [x] #3 Copy cart to iCloud: cp mario.p8 ~/iCloud/pico-8/carts/marioish/mario.p8
+- [x] #4 Token count verified under 8192 limit
 <!-- DOD:END -->

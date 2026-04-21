@@ -149,6 +149,7 @@ function reveal_hidden(mx, my)
   else
     spawn_pop_coin(mx, my)
     coins += 1
+    score += coin_pts
     sfx(1)
   end
   return true

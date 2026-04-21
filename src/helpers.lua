@@ -2,6 +2,13 @@
 -- helpers
 ----------------------------------------
 
+-- zero-pad a number to w digits
+function zpad(n, w)
+  local s = ""..n
+  while #s < w do s = "0"..s end
+  return s
+end
+
 -- get map tile at pixel coords
 function tile_at(px, py)
   return mget(flr(px / 8), flr(py / 8))
@@ -57,6 +64,7 @@ function bump_block(mx, my)
       if kind == "coin" then
         spawn_pop_coin(mx, my)
         coins += 1
+        score += coin_pts
         sfx(1)
       else
         spawn_item(mx, my, kind)
@@ -70,6 +78,7 @@ function bump_block(mx, my)
       if spawn_bump(mx, my, t) then
         spawn_pop_coin(mx, my)
         coins += 1
+        score += coin_pts
         sfx(1)
         mc.bumps_left -= 1
         if not mc.active then

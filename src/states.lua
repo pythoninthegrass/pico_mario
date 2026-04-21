@@ -121,6 +121,28 @@ function update_play()
 
   -- chain resets once the player lands
   if p.grounded then stomp_chain = 0 end
+
+  update_timer(p)
+end
+
+-- advance the level timer by one frame.
+-- kills the player when it reaches zero.
+function update_timer(p)
+  timer_tick += 1
+  if timer_tick >= timer_rate then
+    timer_tick = 0
+    timer -= 1
+    if timer <= 0 then
+      timer = 0
+      state = st_dead
+      death_t = 0
+      spawn_particles(p.x + 3, p.y + 4, 8, 20)
+      sfx(2)
+    elseif timer == timer_warn and not timer_warned then
+      timer_warned = true
+      music(2)
+    end
+  end
 end
 
 -- aabb overlap + stomp/side classifier.
@@ -225,7 +247,13 @@ end
 ----------------------------------------
 function update_dead()
   death_t += 1
+  if death_t == 1 then
+    lives -= 1
+  end
   if death_t > 20 and (btnp(4) or btnp(5)) then
+    if lives <= 0 then
+      lives = nil
+    end
     _init()
   end
 end
@@ -235,7 +263,13 @@ end
 ----------------------------------------
 function update_clear()
   clear_t += 1
-  if clear_t > 30 and (btnp(4) or btnp(5)) then
+
+  -- drain remaining timer into score
+  if timer > 0 then
+    local drain = min(timer, timer_drain_spd)
+    timer -= drain
+    score += drain * timer_pts
+  elseif clear_t > 30 and (btnp(4) or btnp(5)) then
     _init()
   end
 end

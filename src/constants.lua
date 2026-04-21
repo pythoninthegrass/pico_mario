@@ -115,6 +115,18 @@ spr_big_run1 = 113
 spr_big_run2 = 114
 spr_big_jump = 115
 
+-- scoring
+coin_pts = 200
+mushroom_pts = 1000
+star_pts = 1000
+
+-- timer
+timer_start = 400
+timer_rate = 24       -- frames per tick (~0.4s at 60fps)
+timer_warn = 100      -- speed up music at this value
+timer_pts = 50        -- points per remaining tick at level clear
+timer_drain_spd = 4   -- ticks drained per frame during clear
+
 -- game states
 st_play = 0
 st_dead = 1

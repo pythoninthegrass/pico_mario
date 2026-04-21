@@ -19,6 +19,8 @@ globals = {
   "shell_spd", "kick_grace_len",
   "invuln_len", "transform_len",
   "invince_len", "star_spd", "star_bounce", "flip_rise",
+  "coin_pts", "mushroom_pts", "star_pts",
+  "timer_start", "timer_rate", "timer_warn", "timer_pts", "timer_drain_spd",
   "map_w", "map_h",
   "f_solid", "f_hazard", "f_coin", "f_goal", "f_breakable", "f_question", "f_pipe",
   "spr_idle", "spr_run1", "spr_run2", "spr_jump", "spr_dead", "spr_spawn", "spr_spike",
@@ -36,6 +38,7 @@ globals = {
   "st_play", "st_dead", "st_clear",
 
   -- helpers.lua
+  "zpad",
   "tile_at", "tile_flag_at", "is_solid", "is_hazard", "is_goal", "collect_coin",
   "bump_block",
 
@@ -69,12 +72,12 @@ globals = {
   "stomp_enemy", "kick_shell", "flip_enemy",
 
   -- states.lua
-  "update_play", "get_player_spr", "update_dead", "update_clear",
+  "update_play", "update_timer", "get_player_spr", "update_dead", "update_clear",
   "check_enemy_hits", "stomp_enemy",
 
   -- main.lua shared state
   "player", "cam_x", "cam_y", "state", "coins", "death_t", "clear_t", "lives",
-  "score", "stomp_chain",
+  "score", "stomp_chain", "timer", "timer_tick", "timer_warned",
   "register_specials",
 }
 

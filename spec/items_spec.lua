@@ -4,9 +4,11 @@ describe('items', function()
   before_each(function()
     load_game()
     _G.coins = 0
+    _G.score = 0
     _G.lives = 3
     _G.bumped_blocks = {}
     _G.pop_coins = {}
+    _G.score_pops = {}
     _G.hidden_blocks = {}
     _G.multi_coin_bricks = {}
     _G.items = {}

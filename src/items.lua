@@ -109,8 +109,12 @@ function update_items()
       del(items, it)
       if it.kind == "mushroom" then
         grow_player(player)
+        score += mushroom_pts
+        spawn_score_pop(it.x, it.y - 4, mushroom_pts)
       elseif it.kind == "star" then
         star_player(player)
+        score += star_pts
+        spawn_score_pop(it.x, it.y - 4, star_pts)
       else
         -- fireflower remains placeholder
         -- (granted as score) until its

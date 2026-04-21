@@ -118,6 +118,18 @@ spr_big_run1 = 113
 spr_big_run2 = 114
 spr_big_jump = 115
 
+-- scoring
+coin_pts = 200
+mushroom_pts = 1000
+star_pts = 1000
+
+-- timer
+timer_start = 400
+timer_rate = 24       -- frames per tick (~0.4s at 60fps)
+timer_warn = 100      -- speed up music at this value
+timer_pts = 50        -- points per remaining tick at level clear
+timer_drain_spd = 4   -- ticks drained per frame during clear
+
 -- game states
 st_play = 0
 st_dead = 1
@@ -126,6 +138,13 @@ st_clear = 2
 ----------------------------------------
 -- helpers
 ----------------------------------------
+
+-- zero-pad a number to w digits
+function zpad(n, w)
+  local s = ""..n
+  while #s < w do s = "0"..s end
+  return s
+end
 
 -- get map tile at pixel coords
 function tile_at(px, py)
@@ -182,6 +201,7 @@ function bump_block(mx, my)
       if kind == "coin" then
         spawn_pop_coin(mx, my)
         coins += 1
+        score += coin_pts
         sfx(1)
       else
         spawn_item(mx, my, kind)
@@ -195,6 +215,7 @@ function bump_block(mx, my)
       if spawn_bump(mx, my, t) then
         spawn_pop_coin(mx, my)
         coins += 1
+        score += coin_pts
         sfx(1)
         mc.bumps_left -= 1
         if not mc.active then
@@ -439,6 +460,7 @@ function player_check_tiles(p)
       end
       if collect_coin(px, py) then
         coins += 1
+        score += coin_pts
         sfx(1)
       end
     end
@@ -653,6 +675,7 @@ function reveal_hidden(mx, my)
   else
     spawn_pop_coin(mx, my)
     coins += 1
+    score += coin_pts
     sfx(1)
   end
   return true
@@ -822,8 +845,12 @@ function update_items()
       del(items, it)
       if it.kind == "mushroom" then
         grow_player(player)
+        score += mushroom_pts
+        spawn_score_pop(it.x, it.y - 4, mushroom_pts)
       elseif it.kind == "star" then
         star_player(player)
+        score += star_pts
+        spawn_score_pop(it.x, it.y - 4, star_pts)
       else
         -- fireflower remains placeholder
         -- (granted as score) until its
@@ -1082,6 +1109,9 @@ function _init()
   lives = lives or 3
   death_t = 0
   clear_t = 0
+  timer = timer_start
+  timer_tick = 0
+  timer_warned = false
 
   -- reload map from rom so coins
   -- and spawn marker are restored
@@ -1191,17 +1221,31 @@ function _draw()
 
   -- hud (screen-fixed)
   camera(0, 0)
-  -- coin icon + count
-  spr(spr_coin1, 2, 2)
-  print(coins, 12, 4, 7)
-  print(score, 90, 4, 7)
+  rectfill(0, 0, 127, 15, 0)
+  -- row 1: labels
+  print("mario", 2, 2, 7)
+  spr(spr_coin1, 42, 1)
+  print("x"..zpad(coins, 2), 50, 2, 7)
+  print("world", 72, 2, 7)
+  print("time", 104, 2, 7)
+  -- row 2: values
+  print(zpad(score, 6), 2, 9, 7)
+  print("x"..lives, 30, 9, 7)
+  print("1-1", 78, 9, 7)
+  print(zpad(timer, 3), 108, 9, 7)
 
   if state == st_dead and death_t > 20 then
-    rectfill(20, 54, 108, 68, 1)
-    print("press \x97/\x8e to retry", 24, 58, 7)
+    if lives <= 0 then
+      rectfill(20, 50, 108, 72, 1)
+      print("game over", 42, 54, 8)
+      print("press \x97/\x8e", 42, 64, 7)
+    else
+      rectfill(20, 54, 108, 68, 1)
+      print("press \x97/\x8e to retry", 24, 58, 7)
+    end
   end
 
-  if state == st_clear then
+  if state == st_clear and timer == 0 then
     rectfill(20, 44, 108, 72, 1)
     print("level clear!", 36, 48, 10)
     if clear_t > 30 then
@@ -1333,6 +1377,28 @@ function update_play()
 
   -- chain resets once the player lands
   if p.grounded then stomp_chain = 0 end
+
+  update_timer(p)
+end
+
+-- advance the level timer by one frame.
+-- kills the player when it reaches zero.
+function update_timer(p)
+  timer_tick += 1
+  if timer_tick >= timer_rate then
+    timer_tick = 0
+    timer -= 1
+    if timer <= 0 then
+      timer = 0
+      state = st_dead
+      death_t = 0
+      spawn_particles(p.x + 3, p.y + 4, 8, 20)
+      sfx(2)
+    elseif timer == timer_warn and not timer_warned then
+      timer_warned = true
+      music(2)
+    end
+  end
 end
 
 -- aabb overlap + stomp/side classifier.
@@ -1437,7 +1503,13 @@ end
 ----------------------------------------
 function update_dead()
   death_t += 1
+  if death_t == 1 then
+    lives -= 1
+  end
   if death_t > 20 and (btnp(4) or btnp(5)) then
+    if lives <= 0 then
+      lives = nil
+    end
     _init()
   end
 end
@@ -1447,7 +1519,13 @@ end
 ----------------------------------------
 function update_clear()
   clear_t += 1
-  if clear_t > 30 and (btnp(4) or btnp(5)) then
+
+  -- drain remaining timer into score
+  if timer > 0 then
+    local drain = min(timer, timer_drain_spd)
+    timer -= drain
+    score += drain * timer_pts
+  elseif clear_t > 30 and (btnp(4) or btnp(5)) then
     _init()
   end
 end

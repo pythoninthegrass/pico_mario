@@ -224,6 +224,7 @@ function player_check_tiles(p)
       end
       if collect_coin(px, py) then
         coins += 1
+        score += coin_pts
         sfx(1)
       end
     end
