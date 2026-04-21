@@ -49,9 +49,9 @@ describe('hud, scoring, and timer', function()
     it('converts remaining time to score on level clear', function()
       _G.timer = 50
       _G.state = st_clear
+      _G.clear_phase = cp_tally
       _G.clear_t = 0
       local base_score = score
-      -- drain_spd=3, so 50/3 = 17 frames (16 full + 1 partial)
       local frames = math.ceil(50 / timer_drain_spd)
       for i = 1, frames do
         update_clear()

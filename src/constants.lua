@@ -132,3 +132,22 @@ st_play = 0
 st_dead = 1
 st_clear = 2
 
+-- flagpole / castle (1-1 layout)
+pole_x = 864         -- col 108 * 8
+pole_top_y = 48      -- row 6 * 8 (ball row)
+pole_bottom_y = 104  -- row 13 * 8 (mario stands)
+flag_map_x = 108
+flag_map_y = 7
+castle_wall_x = 944  -- col 118 * 8, where mario stops walking
+slide_spd = 1        -- px/frame mario+flag slide
+walk_cut_spd = 1     -- px/frame cutscene walk
+enter_hold = 40      -- frames after reaching castle before tally
+tally_hold = 120     -- frames after tally before allowing restart
+
+-- clear cutscene phases
+cp_slide = 0
+cp_walk = 1
+cp_enter = 2
+cp_tally = 3
+cp_done = 4
+

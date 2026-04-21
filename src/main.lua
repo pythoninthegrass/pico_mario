@@ -10,6 +10,11 @@ function _init()
   lives = lives or 3
   death_t = 0
   clear_t = 0
+  clear_phase = cp_slide
+  enter_t = 0
+  grab_pts = 0
+  grab_y = 0
+  flag_y = pole_top_y + 8
   timer = timer_start
   timer_tick = 0
   timer_warned = false
@@ -88,9 +93,20 @@ function _draw()
 
   draw_bumps()
 
+  -- draw animated flag + grab score during clear
+  if state == st_clear then
+    spr(spr_flag, pole_x, flag_y)
+    if clear_phase <= cp_walk then
+      print(grab_pts, pole_x + 10, grab_y, 7)
+    end
+  end
+
   -- draw player
   if state == st_play
-      or (state == st_dead and death_t < 10) then
+      or (state == st_dead and death_t < 10)
+      or (state == st_clear and clear_phase < cp_enter)
+      or (state == st_clear and clear_phase == cp_enter
+          and enter_t < 8) then
     -- flash every 4 frames while invuln
     local blink = player.invuln_t > 0
         and (player.invuln_t % 8) < 4
@@ -146,12 +162,10 @@ function _draw()
     end
   end
 
-  if state == st_clear and timer == 0 then
+  if state == st_clear and clear_phase == cp_done then
     rectfill(20, 44, 108, 72, 1)
     print("level clear!", 36, 48, 10)
-    if clear_t > 30 then
-      print("press \x97/\x8e to restart", 22, 62, 7)
-    end
+    print("press \x97/\x8e to restart", 22, 62, 7)
   end
 end
 

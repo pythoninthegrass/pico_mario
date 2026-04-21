@@ -135,6 +135,25 @@ st_play = 0
 st_dead = 1
 st_clear = 2
 
+-- flagpole / castle (1-1 layout)
+pole_x = 864         -- col 108 * 8
+pole_top_y = 48      -- row 6 * 8 (ball row)
+pole_bottom_y = 104  -- row 13 * 8 (mario stands)
+flag_map_x = 108
+flag_map_y = 7
+castle_wall_x = 944  -- col 118 * 8, where mario stops walking
+slide_spd = 1        -- px/frame mario+flag slide
+walk_cut_spd = 1     -- px/frame cutscene walk
+enter_hold = 40      -- frames after reaching castle before tally
+tally_hold = 120     -- frames after tally before allowing restart
+
+-- clear cutscene phases
+cp_slide = 0
+cp_walk = 1
+cp_enter = 2
+cp_tally = 3
+cp_done = 4
+
 ----------------------------------------
 -- helpers
 ----------------------------------------
@@ -1109,6 +1128,11 @@ function _init()
   lives = lives or 3
   death_t = 0
   clear_t = 0
+  clear_phase = cp_slide
+  enter_t = 0
+  grab_pts = 0
+  grab_y = 0
+  flag_y = pole_top_y + 8
   timer = timer_start
   timer_tick = 0
   timer_warned = false
@@ -1187,9 +1211,20 @@ function _draw()
 
   draw_bumps()
 
+  -- draw animated flag + grab score during clear
+  if state == st_clear then
+    spr(spr_flag, pole_x, flag_y)
+    if clear_phase <= cp_walk then
+      print(grab_pts, pole_x + 10, grab_y, 7)
+    end
+  end
+
   -- draw player
   if state == st_play
-      or (state == st_dead and death_t < 10) then
+      or (state == st_dead and death_t < 10)
+      or (state == st_clear and clear_phase < cp_enter)
+      or (state == st_clear and clear_phase == cp_enter
+          and enter_t < 8) then
     -- flash every 4 frames while invuln
     local blink = player.invuln_t > 0
         and (player.invuln_t % 8) < 4
@@ -1245,12 +1280,10 @@ function _draw()
     end
   end
 
-  if state == st_clear and timer == 0 then
+  if state == st_clear and clear_phase == cp_done then
     rectfill(20, 44, 108, 72, 1)
     print("level clear!", 36, 48, 10)
-    if clear_t > 30 then
-      print("press \x97/\x8e to restart", 22, 62, 7)
-    end
+    print("press \x97/\x8e to restart", 22, 62, 7)
   end
 end
 
@@ -1349,10 +1382,7 @@ function update_play()
     spawn_particles(p.x + 3, p.y + 4, 8, 20)
     sfx(2)
   elseif result == "clear" then
-    state = st_clear
-    clear_t = 0
-    spawn_particles(p.x + 3, p.y + 4, 10, 30)
-    sfx(3)
+    enter_clear(p)
   end
 
   update_cam(p)
@@ -1517,16 +1547,94 @@ end
 ----------------------------------------
 -- state: level clear
 ----------------------------------------
+-- grab-height score tiers: top=5000,
+-- upper=2000, middle=800, lower=400,
+-- else=100 based on mario.y at contact.
+function enter_clear(p)
+  state = st_clear
+  clear_t = 0
+  clear_phase = cp_slide
+  enter_t = 0
+  music(-1)
+  sfx(3)
+
+  local gy = p.y
+  local pts = 100
+  if gy < 56 then pts = 5000
+  elseif gy < 72 then pts = 2000
+  elseif gy < 88 then pts = 800
+  elseif gy < 96 then pts = 400
+  end
+  score += pts
+  grab_pts = pts
+  grab_y = gy
+
+  -- snap to left side of pole for slide
+  p.x = pole_x - 5
+  p.dx = 0
+  p.dy = 0
+  p.facing = -1
+  p.grounded = false
+  p.frame = 0
+  p.frame_t = 0
+
+  -- flag starts at top; remove map tile
+  -- so we can render it animated.
+  flag_y = pole_top_y + 8
+  mset(flag_map_x, flag_map_y, 0)
+end
+
 function update_clear()
   clear_t += 1
+  local p = player
 
-  -- drain remaining timer into score
-  if timer > 0 then
-    local drain = min(timer, timer_drain_spd)
-    timer -= drain
-    score += drain * timer_pts
-  elseif clear_t > 30 and (btnp(4) or btnp(5)) then
-    _init()
+  if clear_phase == cp_slide then
+    if p.y < pole_bottom_y then
+      p.y += slide_spd
+    end
+    if flag_y < pole_bottom_y then
+      flag_y += slide_spd
+    end
+    if p.y >= pole_bottom_y
+        and flag_y >= pole_bottom_y then
+      p.y = pole_bottom_y
+      flag_y = pole_bottom_y
+      clear_phase = cp_walk
+      -- hop to right side of pole
+      p.x = pole_x + 8
+      p.facing = 1
+    end
+  elseif clear_phase == cp_walk then
+    p.x += walk_cut_spd
+    p.frame_t += 1
+    if p.frame_t > 4 then
+      p.frame_t = 0
+      p.frame = (p.frame + 1) % 3
+    end
+    update_cam(p)
+    if p.x >= castle_wall_x then
+      clear_phase = cp_enter
+      enter_t = 0
+    end
+  elseif clear_phase == cp_enter then
+    enter_t += 1
+    p.x += walk_cut_spd
+    if enter_t > enter_hold then
+      clear_phase = cp_tally
+      clear_t = 0
+    end
+  elseif clear_phase == cp_tally then
+    if timer > 0 then
+      local drain = min(timer, timer_drain_spd)
+      timer -= drain
+      score += drain * timer_pts
+    elseif clear_t > tally_hold then
+      clear_phase = cp_done
+    end
+  elseif clear_phase == cp_done then
+    if btnp(4) or btnp(5) then
+      _init()
+    end
   end
 end
 __gfx__
