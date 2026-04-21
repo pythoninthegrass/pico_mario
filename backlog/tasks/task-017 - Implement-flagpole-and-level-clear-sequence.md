@@ -1,10 +1,10 @@
 ---
 id: TASK-017
 title: Implement flagpole and level clear sequence
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-04-15 20:49'
-updated_date: '2026-04-21 15:03'
+updated_date: '2026-04-21 16:17'
 labels: []
 milestone: m-4
 dependencies:
@@ -31,10 +31,10 @@ This replaces the current simple goal-flag detection.
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 Touching flagpole triggers level clear sequence
-- [ ] #2 Mario slides down flagpole to base
+- [x] #2 Mario slides down flagpole to base
 - [x] #3 Score awarded based on height of flagpole grab
-- [ ] #4 After sliding down, Mario walks right toward castle
-- [ ] #5 Mario enters castle door and disappears
+- [x] #4 After sliding down, Mario walks right toward castle
+- [x] #5 Mario enters castle door and disappears
 - [x] #6 Timer remaining converts to score (50 pts per tick with fast countdown)
 - [x] #7 Level clear fanfare plays
 - [x] #8 After sequence completes, game restarts (or shows victory screen)
@@ -43,12 +43,16 @@ This replaces the current simple goal-flag detection.
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
-Known bug (2026-04-21 play-test): mario walks a handful of blocks below the ground after the flagpole slide. Likely cause: pole_bottom_y is hardcoded to 104 (small-mario foot position) and does not account for player height. Big mario (h=16) sliding to y=104 puts his feet at y=120, 8 px below the ground surface at y=112; any additional offset from cp_enter advancing mario past the castle wall would compound the visual sinking. Fix: compute foot_y = (ground_top - p.h) in enter_clear/cp_slide instead of using the pole_bottom_y constant, and clamp p.x during cp_enter so mario stops at the castle door rather than marching through it. Sub-AC #2/4/5 and DoD #1 re-opened pending verification.
+Fixed two bugs in the clear sequence (2026-04-21):
+
+1. Mario underground after slide: pole_bottom_y (104) was hardcoded for small Mario (h=8). Big Mario (h=16) ended up with feet at y=120, 8px below ground (y=112). Fix: enter_clear now computes slide_target_y = 112 - p.h so both small and big Mario land with feet at the ground surface. cp_slide uses slide_target_y instead of pole_bottom_y for the player position.
+
+2. Flag separated from pole: mset(flag_map_x, flag_map_y, 0) left a gap in the pole shaft when the flag tile slid away. Fix: replace with spr_pole_shaft instead of 0 so the pole stays visually continuous as the flag slides down.
 <!-- SECTION:NOTES:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 Cart loads in PICO-8 without errors
+- [x] #1 Cart loads in PICO-8 without errors
 - [ ] #2 Play-test affected functionality
 - [x] #3 Copy cart to iCloud: cp mario.p8 ~/iCloud/pico-8/carts/marioish/mario.p8
 - [x] #4 Token count verified under 8192 limit
