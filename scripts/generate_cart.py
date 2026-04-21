@@ -212,15 +212,18 @@ SPRITES: dict[int, list[str]] = {
     # --------------------------------------------------------
     # Row 1: Terrain tiles (IDs 16-21)
     # --------------------------------------------------------
-    # 16: ground (orange SMB overworld brick)
+    # 16: ground (red-orange brick with dark mortar; half-offset stagger)
+    # top half: vertical mortar at col 7 (tile boundary)
+    # bottom half: vertical mortar at col 3 (tile middle)
+    # tiled horizontally, this creates 8-wide bricks offset by 4px/row
     16: [
-        "99999999",
-        "99494994",
-        "99999999",
+        "99999994",
+        "99999994",
+        "99999994",
         "44444444",
-        "99999999",
-        "49944994",
-        "99999999",
+        "99949999",
+        "99949999",
+        "99949999",
         "44444444",
     ],
     # 17: brick block (breakable, warm brown with mortar)
@@ -430,16 +433,16 @@ SPRITES: dict[int, list[str]] = {
         ".ffffff.",
         ".ffffff.",
     ],
-    # 67: star (yellow, bouncing power-up)
+    # 67: star (yellow 5-point, symmetric)
     67: [
-        "...a....",
-        "..aaa...",
-        ".aaaaa..",
-        "aaaaaaa.",
-        ".aa.aa..",
-        ".a...a..",
-        "a.....a.",
-        "........",
+        "...aa...",
+        "...aa...",
+        ".aaaaaa.",
+        "aaaaaaaa",
+        ".aaaaaa.",
+        "..aaaa..",
+        "..a..a..",
+        ".aa..aa.",
     ],
     # 68: fire flower (red/orange petals, green stem)
     68: [
