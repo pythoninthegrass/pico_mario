@@ -93,6 +93,9 @@ cp mario.p8 ~/iCloud/pico-8/carts/marioish/mario.p8
 
 # Launch cart directly in PICO-8
 pico8 -run mario.p8
+
+# ! IMPORTANT: Quit PICO-8 after manual testing
+pkill -f pico8
 ```
 
 ## Reference asset inspection
