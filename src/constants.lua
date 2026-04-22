@@ -99,6 +99,9 @@ spr_flag = 82
 spr_castle = 83
 spr_castle_top = 84
 spr_castle_door = 85
+spr_castle_win = 86
+spr_castle_door_btm = 87
+spr_peace_flag = 88
 -- row 6: decorations
 spr_cloud_l = 96
 spr_cloud_m = 97
@@ -131,6 +134,14 @@ timer_drain_spd = 4   -- ticks drained per frame during clear
 st_play = 0
 st_dead = 1
 st_clear = 2
+st_title = 3
+st_lives = 4
+st_gameover = 5
+
+-- screen holds (frames at 60fps)
+death_to_screen = 90  -- death anim before lives/gameover
+lives_hold = 120      -- ~2s lives screen
+gameover_hold = 180   -- ~3s game over screen
 
 -- flagpole / castle (1-1 layout)
 pole_x = 864         -- col 108 * 8
@@ -149,5 +160,17 @@ cp_slide = 0
 cp_walk = 1
 cp_enter = 2
 cp_tally = 3
-cp_done = 4
+cp_fireworks = 4
+cp_done = 5
+
+-- fireworks
+fw_pts = 500
+fw_rise_len = 25     -- frames rocket rises
+fw_gap = 60          -- total frames per firework
+
+-- peace flag (raised on castle during clear)
+peace_x = 960        -- col 120 * 8 (turret center)
+peace_end_y = 44     -- final y (above turret)
+peace_start_y = 72   -- start y (behind battlements)
+peace_spd = 1        -- rise speed px/frame
 

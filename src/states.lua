@@ -246,11 +246,42 @@ function update_dead()
   death_t += 1
   if death_t == 1 then
     lives -= 1
+    if lives < 0 then lives = 0 end
   end
-  if death_t > 20 and (btnp(4) or btnp(5)) then
-    if lives <= 0 then
-      lives = nil
+  if death_t >= death_to_screen then
+    if lives > 0 then
+      start_level()
+      state = st_lives
+      lives_t = 0
+    else
+      state = st_gameover
+      gameover_t = 0
     end
+  end
+end
+
+----------------------------------------
+-- state: title / lives / game over
+----------------------------------------
+function update_title()
+  title_t += 1
+  if title_t > 30 and btnp(4) then
+    state = st_lives
+    lives_t = 0
+  end
+end
+
+function update_lives()
+  lives_t += 1
+  if lives_t >= lives_hold then
+    state = st_play
+  end
+end
+
+function update_gameover()
+  gameover_t += 1
+  if gameover_t >= gameover_hold
+      or (gameover_t > 30 and btnp(4)) then
     _init()
   end
 end
@@ -289,10 +320,29 @@ function enter_clear(p)
   p.frame = 0
   p.frame_t = 0
 
-  -- flag starts at top; remove map tile
-  -- so we can render it animated.
+  -- slide target: ground surface minus
+  -- player height so feet land at y=112
+  -- regardless of small/big mario
+  slide_target_y = 112 - p.h
+
+  -- firework count: 1, 3, or 6 based on
+  -- timer's last digit at moment of grab
+  local d = timer % 10
+  if d == 1 or d == 3 or d == 6 then
+    fw_count = d
+  else
+    fw_count = 0
+  end
+  fw_fired = 0
+  fw_t = 0
+  fw_x = 0
+  fw_y = 0
+
+  -- flag starts at top; replace map tile
+  -- with shaft so pole stays continuous
+  -- as the flag slides down.
   flag_y = pole_top_y + 8
-  mset(flag_map_x, flag_map_y, 0)
+  mset(flag_map_x, flag_map_y, spr_pole_shaft)
 end
 
 function update_clear()
@@ -300,15 +350,15 @@ function update_clear()
   local p = player
 
   if clear_phase == cp_slide then
-    if p.y < pole_bottom_y then
+    if p.y < slide_target_y then
       p.y += slide_spd
     end
     if flag_y < pole_bottom_y then
       flag_y += slide_spd
     end
-    if p.y >= pole_bottom_y
+    if p.y >= slide_target_y
         and flag_y >= pole_bottom_y then
-      p.y = pole_bottom_y
+      p.y = slide_target_y
       flag_y = pole_bottom_y
       clear_phase = cp_walk
       -- hop to right side of pole
@@ -330,6 +380,10 @@ function update_clear()
   elseif clear_phase == cp_enter then
     enter_t += 1
     p.x += walk_cut_spd
+    -- raise peace flag on castle
+    if peace_y > peace_end_y then
+      peace_y -= peace_spd
+    end
     if enter_t > enter_hold then
       clear_phase = cp_tally
       clear_t = 0
@@ -340,7 +394,41 @@ function update_clear()
       timer -= drain
       score += drain * timer_pts
     elseif clear_t > tally_hold then
-      clear_phase = cp_done
+      if fw_count > 0 then
+        clear_phase = cp_fireworks
+        fw_t = 0
+        fw_fired = 0
+        clear_t = 0
+      else
+        clear_phase = cp_done
+      end
+    end
+  elseif clear_phase == cp_fireworks then
+    fw_t += 1
+    if fw_t == 1 then
+      -- pick position for this firework
+      -- cycle through 6 spots in the sky
+      local idx = fw_fired % 6
+      fw_x = cam_x + 20 + idx * 19
+      fw_y = 28 + (idx % 3) * 10
+    end
+    if fw_t == fw_rise_len then
+      -- explode: particles + score + sfx
+      spawn_particles(fw_x, fw_y, 10, 10)
+      spawn_particles(fw_x, fw_y, 8, 6)
+      spawn_particles(fw_x, fw_y, 7, 4)
+      score += fw_pts
+      spawn_score_pop(fw_x, fw_y, fw_pts)
+      sfx(4)
+      fw_fired += 1
+    end
+    if fw_t >= fw_gap then
+      if fw_fired >= fw_count then
+        clear_phase = cp_done
+        clear_t = 0
+      else
+        fw_t = 0
+      end
     end
   elseif clear_phase == cp_done then
     if btnp(4) or btnp(5) then
@@ -348,4 +436,3 @@ function update_clear()
     end
   end
 end
-

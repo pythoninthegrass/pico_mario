@@ -235,4 +235,3 @@ function player_check_tiles(p)
   end
   return "ok"
 end
-

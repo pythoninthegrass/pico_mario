@@ -513,16 +513,51 @@ SPRITES: dict[int, list[str]] = {
         "48848884",
         "44444444",
     ],
-    # 85: castle door (arched black opening)
+    # 85: castle door top (semi-oval arch)
+    # Uses color 1 (dark blue) instead of 0 so
+    # the opening is opaque, not transparent.
     85: [
         "44444444",
-        "45500554",
-        "45000054",
-        "45000054",
-        "45000054",
-        "45000054",
-        "45000054",
-        "45000054",
+        "48411484",
+        "84111148",
+        "41111114",
+        "11111111",
+        "11111111",
+        "11111111",
+        "11111111",
+    ],
+    # 86: castle window (block with dark opening)
+    86: [
+        "44444444",
+        "88111188",
+        "88111188",
+        "88111188",
+        "44444444",
+        "48848884",
+        "48848884",
+        "44444444",
+    ],
+    # 87: castle door bottom (dark interior)
+    87: [
+        "11111111",
+        "11111111",
+        "11111111",
+        "11111111",
+        "11111111",
+        "11111111",
+        "11111111",
+        "11111111",
+    ],
+    # 88: peace flag (white flag + red star on pole)
+    88: [
+        "...55...",
+        "...55777",
+        "...55887",
+        "...55777",
+        "...55...",
+        "...55...",
+        "...55...",
+        "...55...",
     ],
     # --------------------------------------------------------
     # Row 6: Decorations (IDs 96-104)
@@ -768,6 +803,7 @@ SPRITE_FLAGS: dict[int, int] = {
     # castle
     83: 0x01,  # castle block: solid
     84: 0x01,  # castle top: solid
+    86: 0x01,  # castle window: solid
 }
 
 

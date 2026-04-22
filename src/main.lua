@@ -2,12 +2,23 @@
 -- game state machine
 ----------------------------------------
 function _init()
-  state = st_play
-  coins = 0
+  lives = 3
   score = 0
+  coins = 0
   stomp_chain = 0
+  state = st_title
+  title_t = 0
+  lives_t = 0
+  gameover_t = 0
+  start_level()
+end
+
+-- reset level state for a fresh play.
+-- preserves score/coins/lives so the
+-- lives screen can display them before
+-- play resumes.
+function start_level()
   score_pops = {}
-  lives = lives or 3
   death_t = 0
   clear_t = 0
   clear_phase = cp_slide
@@ -15,6 +26,12 @@ function _init()
   grab_pts = 0
   grab_y = 0
   flag_y = pole_top_y + 8
+  fw_count = 0
+  fw_fired = 0
+  fw_t = 0
+  fw_x = 0
+  fw_y = 0
+  peace_y = peace_start_y
   timer = timer_start
   timer_tick = 0
   timer_warned = false
@@ -68,7 +85,13 @@ function register_specials()
 end
 
 function _update60()
-  if state == st_play then
+  if state == st_title then
+    update_title()
+  elseif state == st_lives then
+    update_lives()
+  elseif state == st_gameover then
+    update_gameover()
+  elseif state == st_play then
     update_play()
   elseif state == st_dead then
     update_dead()
@@ -83,7 +106,75 @@ function _update60()
   update_items()
 end
 
+function draw_hud()
+  camera(0, 0)
+  rectfill(0, 0, 127, 15, 0)
+  -- row 1: labels
+  print("mario", 2, 2, 7)
+  spr(spr_coin1, 42, 1)
+  print("x"..zpad(coins, 2), 50, 2, 7)
+  print("world", 72, 2, 7)
+  print("time", 104, 2, 7)
+  -- row 2: values
+  print(zpad(score, 6), 2, 9, 7)
+  print("x"..lives, 30, 9, 7)
+  print("1-1", 78, 9, 7)
+  print(zpad(timer, 3), 108, 9, 7)
+end
+
+function draw_title()
+  cls(12)
+  camera(0, 0)
+  draw_hud()
+  -- ground strip
+  for x = 0, 120, 8 do
+    spr(spr_ground, x, 112)
+    spr(spr_ground, x, 120)
+  end
+  -- small hill on the left
+  spr(spr_hill_top, 16, 96)
+  spr(spr_hill, 8, 104)
+  spr(spr_hill, 16, 104)
+  spr(spr_hill, 24, 104)
+  -- bush on the right
+  spr(spr_bush_l, 80, 104)
+  spr(spr_bush_m, 88, 104)
+  spr(spr_bush_r, 96, 104)
+  -- title + prompt
+  print("pico mario", 44, 44, 8)
+  print("press \x97 to start", 28, 72, 7)
+end
+
+function draw_lives()
+  cls(0)
+  camera(0, 0)
+  draw_hud()
+  print("world 1-1", 46, 56, 7)
+  spr(spr_idle, 54, 68)
+  print("x "..lives, 66, 72, 7)
+end
+
+function draw_gameover()
+  cls(0)
+  camera(0, 0)
+  draw_hud()
+  print("game over", 46, 60, 7)
+end
+
 function _draw()
+  if state == st_title then
+    draw_title()
+    return
+  end
+  if state == st_lives then
+    draw_lives()
+    return
+  end
+  if state == st_gameover then
+    draw_gameover()
+    return
+  end
+
   cls(12)
 
   camera(cam_x, cam_y)
@@ -98,6 +189,19 @@ function _draw()
     spr(spr_flag, pole_x, flag_y)
     if clear_phase <= cp_walk then
       print(grab_pts, pole_x + 10, grab_y, 7)
+    end
+    -- peace flag rising on the castle turret
+    if clear_phase >= cp_enter then
+      spr(spr_peace_flag, peace_x, peace_y)
+    end
+    -- firework rocket trail rising
+    if clear_phase == cp_fireworks
+        and fw_t < fw_rise_len then
+      local start_y = 112
+      local t = fw_t / fw_rise_len
+      local ry = start_y + (fw_y - start_y) * t
+      pset(fw_x, ry, 10)
+      pset(fw_x, ry + 1, 9)
     end
   end
 
@@ -137,30 +241,7 @@ function _draw()
   draw_particles()
 
   -- hud (screen-fixed)
-  camera(0, 0)
-  rectfill(0, 0, 127, 15, 0)
-  -- row 1: labels
-  print("mario", 2, 2, 7)
-  spr(spr_coin1, 42, 1)
-  print("x"..zpad(coins, 2), 50, 2, 7)
-  print("world", 72, 2, 7)
-  print("time", 104, 2, 7)
-  -- row 2: values
-  print(zpad(score, 6), 2, 9, 7)
-  print("x"..lives, 30, 9, 7)
-  print("1-1", 78, 9, 7)
-  print(zpad(timer, 3), 108, 9, 7)
-
-  if state == st_dead and death_t > 20 then
-    if lives <= 0 then
-      rectfill(20, 50, 108, 72, 1)
-      print("game over", 42, 54, 8)
-      print("press \x97/\x8e", 42, 64, 7)
-    else
-      rectfill(20, 54, 108, 68, 1)
-      print("press \x97/\x8e to retry", 24, 58, 7)
-    end
-  end
+  draw_hud()
 
   if state == st_clear and clear_phase == cp_done then
     rectfill(20, 44, 108, 72, 1)

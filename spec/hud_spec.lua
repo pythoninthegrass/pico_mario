@@ -144,11 +144,16 @@ describe('hud, scoring, and timer', function()
     end)
 
     it('resets to 3 after game over', function()
-      _G.lives = 0
+      _G.lives = 1
       _G.state = st_dead
-      _G.death_t = 21
-      _pico8.btns[4] = true
-      update_dead()
+      _G.death_t = 0
+      for i = 1, death_to_screen do
+        update_dead()
+      end
+      assert.are.equal(st_gameover, state)
+      for i = 1, gameover_hold do
+        update_gameover()
+      end
       assert.are.equal(3, lives)
     end)
   end)

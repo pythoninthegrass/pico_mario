@@ -1,10 +1,10 @@
 ---
 id: TASK-017
 title: Implement flagpole and level clear sequence
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-04-15 20:49'
-updated_date: '2026-04-21 15:03'
+updated_date: '2026-04-22 17:19'
 labels: []
 milestone: m-4
 dependencies:
@@ -31,10 +31,10 @@ This replaces the current simple goal-flag detection.
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [x] #1 Touching flagpole triggers level clear sequence
-- [ ] #2 Mario slides down flagpole to base
+- [x] #2 Mario slides down flagpole to base
 - [x] #3 Score awarded based on height of flagpole grab
-- [ ] #4 After sliding down, Mario walks right toward castle
-- [ ] #5 Mario enters castle door and disappears
+- [x] #4 After sliding down, Mario walks right toward castle
+- [x] #5 Mario enters castle door and disappears
 - [x] #6 Timer remaining converts to score (50 pts per tick with fast countdown)
 - [x] #7 Level clear fanfare plays
 - [x] #8 After sequence completes, game restarts (or shows victory screen)
@@ -48,8 +48,8 @@ Known bug (2026-04-21 play-test): mario walks a handful of blocks below the grou
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 Cart loads in PICO-8 without errors
-- [ ] #2 Play-test affected functionality
+- [x] #1 Cart loads in PICO-8 without errors
+- [x] #2 Play-test affected functionality
 - [x] #3 Copy cart to iCloud: cp mario.p8 ~/iCloud/pico-8/carts/marioish/mario.p8
 - [x] #4 Token count verified under 8192 limit
 <!-- DOD:END -->

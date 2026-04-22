@@ -64,12 +64,12 @@ describe('flagpole level clear (TASK-017)', function()
       assert.are.equal(base + 100, score)
     end)
 
-    it('removes flag tile from map so it can animate', function()
+    it('replaces flag tile with shaft so pole stays continuous', function()
       local p = player
       p.y = pole_top_y
       _pico8.set_tile(flag_map_x, flag_map_y, spr_flag)
       enter_clear(p)
-      assert.are.equal(0, mget(flag_map_x, flag_map_y))
+      assert.are.equal(spr_pole_shaft, mget(flag_map_x, flag_map_y))
     end)
   end)
 
@@ -94,6 +94,21 @@ describe('flagpole level clear (TASK-017)', function()
       assert.are.equal(cp_walk, clear_phase)
       assert.are.equal(pole_x + 8, p.x)
       assert.are.equal(1, p.facing)
+    end)
+
+    it('big mario slides to ground minus height, not pole_bottom_y', function()
+      local p = player
+      p.h = 16
+      p.power = 1
+      p.y = pole_top_y
+      enter_clear(p)
+      assert.are.equal(112 - 16, slide_target_y)
+      -- slide until done
+      for i = 1, 200 do
+        if clear_phase ~= cp_slide then break end
+        update_clear()
+      end
+      assert.are.equal(96, p.y)
     end)
   end)
 
@@ -144,12 +159,82 @@ describe('flagpole level clear (TASK-017)', function()
       assert.are.equal(base + 20 * timer_pts, score)
     end)
 
-    it('transitions to cp_done after tally_hold frames with empty timer', function()
+    it('transitions to cp_fireworks when fw_count > 0', function()
       _G.state = st_clear
       _G.clear_phase = cp_tally
       _G.clear_t = 0
       _G.timer = 0
+      _G.fw_count = 3
       for i = 1, tally_hold + 1 do update_clear() end
+      assert.are.equal(cp_fireworks, clear_phase)
+    end)
+
+    it('transitions to cp_done when fw_count is 0', function()
+      _G.state = st_clear
+      _G.clear_phase = cp_tally
+      _G.clear_t = 0
+      _G.timer = 0
+      _G.fw_count = 0
+      for i = 1, tally_hold + 1 do update_clear() end
+      assert.are.equal(cp_done, clear_phase)
+    end)
+  end)
+
+  describe('fireworks', function()
+    it('enter_clear sets fw_count from timer last digit', function()
+      local p = player
+      p.y = pole_top_y
+      _G.timer = 261
+      enter_clear(p)
+      assert.are.equal(1, fw_count)
+
+      _init()
+      p = player
+      p.y = pole_top_y
+      _G.timer = 393
+      enter_clear(p)
+      assert.are.equal(3, fw_count)
+
+      _init()
+      p = player
+      p.y = pole_top_y
+      _G.timer = 246
+      enter_clear(p)
+      assert.are.equal(6, fw_count)
+    end)
+
+    it('sets fw_count to 0 when last digit is not 1, 3, or 6', function()
+      local p = player
+      p.y = pole_top_y
+      _G.timer = 250
+      enter_clear(p)
+      assert.are.equal(0, fw_count)
+    end)
+
+    it('each firework awards 500 points', function()
+      _G.state = st_clear
+      _G.clear_phase = cp_fireworks
+      _G.fw_count = 1
+      _G.fw_fired = 0
+      _G.fw_t = 0
+      _G.clear_t = 0
+      _G.cam_x = 0
+      local base = score
+      for i = 1, fw_gap do update_clear() end
+      assert.are.equal(base + fw_pts, score)
+      assert.are.equal(1, fw_fired)
+    end)
+
+    it('launches all fireworks then transitions to cp_done', function()
+      _G.state = st_clear
+      _G.clear_phase = cp_fireworks
+      _G.fw_count = 3
+      _G.fw_fired = 0
+      _G.fw_t = 0
+      _G.clear_t = 0
+      _G.cam_x = 0
+      for i = 1, fw_gap * 3 do update_clear() end
+      assert.are.equal(3, fw_fired)
       assert.are.equal(cp_done, clear_phase)
     end)
   end)

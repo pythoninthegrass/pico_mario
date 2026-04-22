@@ -207,4 +207,3 @@ function update_multi_coin_bricks()
     end
   end
 end
-

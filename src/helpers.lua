@@ -96,4 +96,3 @@ function bump_block(mx, my)
     end
   end
 end
-

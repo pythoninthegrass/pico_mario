@@ -35,4 +35,3 @@ function draw_particles()
     pset(pt.x, pt.y, pt.col)
   end
 end
-

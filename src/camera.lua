@@ -11,4 +11,3 @@ function update_cam(p)
   cam_x = mid(0, cam_x, map_w * 8 - 128)
   cam_y = 0
 end
-
