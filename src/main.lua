@@ -99,11 +99,13 @@ function _update60()
     update_clear()
   end
   update_particles()
-  update_bumps()
-  update_pop_coins()
-  update_score_pops()
-  update_multi_coin_bricks()
-  update_items()
+  if state ~= st_dead then
+    update_bumps()
+    update_pop_coins()
+    update_score_pops()
+    update_multi_coin_bricks()
+    update_items()
+  end
 end
 
 function draw_hud()
@@ -206,8 +208,9 @@ function _draw()
   end
 
   -- draw player
-  if state == st_play
-      or (state == st_dead and death_t < 10)
+  if state == st_dead then
+    spr(spr_dead, player.x, player.y)
+  elseif state == st_play
       or (state == st_clear and clear_phase < cp_enter)
       or (state == st_clear and clear_phase == cp_enter
           and enter_t < 8) then

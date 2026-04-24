@@ -59,6 +59,66 @@ describe('game flow: title / lives / game over (TASK-018)', function()
     end)
   end)
 
+  describe('enter_death', function()
+    it('pops player upward and freezes horizontal motion', function()
+      local p = player
+      p.dx = 1.5
+      p.dy = 2
+      p.grounded = true
+      _G.state = st_play
+      enter_death(p)
+      assert.are.equal(st_dead, state)
+      assert.are.equal(0, death_t)
+      assert.are.equal(-4, p.dy)
+      assert.are.equal(0, p.dx)
+      assert.is_false(p.grounded)
+    end)
+  end)
+
+  describe('death animation physics', function()
+    before_each(function()
+      _G.state = st_dead
+      _G.death_t = 0
+      _G.lives = 3
+      player.dx = 0
+      player.dy = -4
+      player.grounded = false
+    end)
+
+    it('moves player up initially (pop)', function()
+      local start_y = player.y
+      update_dead()
+      assert.is_true(player.y < start_y)
+    end)
+
+    it('falls past starting y after gravity dominates', function()
+      local start_y = player.y
+      for i = 1, 60 do
+        update_dead()
+      end
+      assert.is_true(player.y > start_y)
+    end)
+
+    it('clamps downward velocity to max_fall', function()
+      for i = 1, 60 do
+        update_dead()
+      end
+      assert.is_true(player.dy <= max_fall + 0.0001)
+    end)
+
+    it('ignores solid tiles under the player', function()
+      local tile_x = flr((player.x + 3) / 8)
+      local tile_y = flr((player.y + player.h + 2) / 8)
+      _pico8.set_flags(spr_ground, 1)
+      _pico8.set_tile(tile_x, tile_y, spr_ground)
+      local start_y = player.y
+      for i = 1, 30 do
+        update_dead()
+      end
+      assert.is_true(player.y > start_y + 4)
+    end)
+  end)
+
   describe('death flow', function()
     it('death with lives > 0 transitions to st_lives', function()
       _G.lives = 3

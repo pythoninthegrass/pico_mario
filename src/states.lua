@@ -88,10 +88,7 @@ function update_play()
     result = damage_player(p)
   end
   if result == "dead" then
-    state = st_dead
-    death_t = 0
-    spawn_particles(p.x + 3, p.y + 4, 8, 20)
-    sfx(2)
+    enter_death(p)
   elseif result == "clear" then
     enter_clear(p)
   end
@@ -108,10 +105,7 @@ function update_play()
     local hit = check_enemy_hits(p)
     if hit == "hit" then
       if damage_player(p) == "dead" then
-        state = st_dead
-        death_t = 0
-        spawn_particles(p.x + 3, p.y + 4, 8, 20)
-        sfx(2)
+        enter_death(p)
       end
     end
   end
@@ -131,10 +125,7 @@ function update_timer(p)
     timer -= 1
     if timer <= 0 then
       timer = 0
-      state = st_dead
-      death_t = 0
-      spawn_particles(p.x + 3, p.y + 4, 8, 20)
-      sfx(2)
+      enter_death(p)
     elseif timer == timer_warn and not timer_warned then
       timer_warned = true
       music(2)
@@ -242,12 +233,30 @@ end
 ----------------------------------------
 -- state: dead
 ----------------------------------------
+-- classic smb death: mario pops up, pauses
+-- at apex, and falls off the bottom of the
+-- screen.  collision is disabled so he
+-- passes through the ground; everything
+-- else in the world is frozen by _update60.
+function enter_death(p)
+  state = st_dead
+  death_t = 0
+  p.dx = 0
+  p.dy = -4
+  p.grounded = false
+  sfx(2)
+end
+
 function update_dead()
   death_t += 1
   if death_t == 1 then
     lives -= 1
     if lives < 0 then lives = 0 end
   end
+  local p = player
+  p.dy += grav
+  if p.dy > max_fall then p.dy = max_fall end
+  p.y += p.dy
   if death_t >= death_to_screen then
     if lives > 0 then
       start_level()
